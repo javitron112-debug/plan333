@@ -9,10 +9,8 @@
   <title>Plan 3-3-3 | Coordinación de Emergencias</title>
   <meta name="description" content="Web de Coordinación de Emergencias Plan 3-3-3. Protocolo de comunicación por radio, localizador de recursos, checklist 72h y guía de primeros auxilios.">
   <link rel="manifest" href="manifest.json">
-  
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  
   <script>
     (function(){
       var t = localStorage.getItem('plan333-theme');
@@ -21,6 +19,7 @@
     })();
   </script>
   <style>
+    /* ========== THEME VARIABLES ========== */
     :root {
       --bg-body: #f0f2f5;
       --bg-header: #ffffff;
@@ -78,6 +77,7 @@
       --shadow-lg: 0 10px 25px rgba(0,0,0,0.45);
     }
 
+    /* ========== BASE RESET ========== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
     body {
@@ -93,6 +93,7 @@
     img { max-width: 100%; height: auto; border-radius: var(--radius-sm); }
     button { cursor: pointer; font-family: inherit; }
 
+    /* ========== LAYOUT ========== */
     .app-header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       background: rgba(var(--bg-header-rgb), 0.82);
@@ -143,6 +144,7 @@
       width: 28px; height: 3px; background: var(--bg-accent); border-radius: 2px;
     }
 
+    /* ========== OFFLINE BANNER ========== */
     .offline-banner {
       position: fixed; top: 0; left: 0; right: 0; z-index: 200;
       background: #dc2626; color: #fff; text-align: center;
@@ -152,6 +154,7 @@
     }
     .offline-banner.visible { transform: translateY(0); }
 
+    /* ========== BUTTONS ========== */
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       padding: 10px 20px; border-radius: var(--radius-sm); border: none;
@@ -172,6 +175,7 @@
     .btn-install.show { display: inline-flex; }
     .btn-install:hover { background: var(--bg-accent-hover); }
 
+    /* ========== CARDS ========== */
     .card {
       background: var(--bg-card); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 20px;
@@ -180,15 +184,21 @@
     .card:hover { box-shadow: var(--shadow-md); }
     .card-accent-top { border-top: 3px solid var(--bg-accent); }
 
+    /* ========== HERO ========== */
     .hero-card {
       background: linear-gradient(135deg, var(--bg-accent), #991b1b);
       color: #fff; border-radius: var(--radius); padding: 28px 24px;
       text-align: center; position: relative; overflow: hidden;
     }
     html.light .hero-card { background: linear-gradient(135deg, #dc2626, #991b1b); }
+    .hero-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 60%);
+    }
     .hero-card h1 { font-size: 32px; font-weight: 900; position: relative; }
     .hero-card p { font-size: 15px; opacity: 0.92; position: relative; margin-top: 8px; }
 
+    /* ========== RULE CARDS ========== */
     .rule-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 18px; }
     @media (min-width: 640px) { .rule-grid { grid-template-columns: repeat(3, 1fr); } }
     .rule-card {
@@ -197,10 +207,14 @@
       transition: all 0.3s; position: relative; overflow: hidden;
     }
     .rule-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-    .rule-num { font-size: 42px; font-weight: 900; color: var(--text-accent); line-height: 1; margin-bottom: 6px; }
+    .rule-num {
+      font-size: 42px; font-weight: 900; color: var(--text-accent);
+      line-height: 1; margin-bottom: 6px;
+    }
     .rule-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
     .rule-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 
+    /* ========== FREQUENCY BADGE ========== */
     .freq-badge {
       display: inline-flex; align-items: center; gap: 8px;
       background: var(--bg-accent-subtle); border: 1px solid var(--border);
@@ -208,23 +222,44 @@
       font-size: 14px; color: var(--text-accent);
     }
 
+    /* ========== TABLE ========== */
     .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
     .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .schedule-table th { background: var(--bg-accent); color: #fff; padding: 10px 14px; text-align: left; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
-    .schedule-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); background: var(--bg-card); }
+    .schedule-table th {
+      background: var(--bg-accent); color: #fff; padding: 10px 14px;
+      text-align: left; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .schedule-table td {
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      color: var(--text-secondary); background: var(--bg-card);
+    }
     .schedule-table tr:last-child td { border-bottom: none; }
-    .schedule-table tr.next-tx td { background: var(--bg-accent-subtle); color: var(--text-accent); font-weight: 700; }
+    .schedule-table tr.next-tx td {
+      background: var(--bg-accent-subtle); color: var(--text-accent); font-weight: 700;
+    }
     .schedule-table tr.next-tx td:first-child::before { content: '▶ '; }
 
+    /* ========== MAP ========== */
     #map-container { position: relative; }
-    #map { width: 100%; height: 400px; border-radius: var(--radius-sm); border: 1px solid var(--border); z-index: 1; }
+    #map {
+      width: 100%; height: 400px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); z-index: 1;
+    }
     @media (min-width: 640px) { #map { height: 500px; } }
-    html.dark .leaflet-tile-pane { filter: brightness(0.7) invert(1) contrast(2.8) hue-rotate(200deg) saturate(0.25) brightness(0.82); }
-    .leaflet-popup-content-wrapper { border-radius: 10px !important; box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important; }
+    html.dark .leaflet-tile-pane {
+      filter: brightness(0.7) invert(1) contrast(2.8) hue-rotate(200deg) saturate(0.25) brightness(0.82);
+    }
+    .leaflet-popup-content-wrapper {
+      border-radius: 10px !important; box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+    }
     html.dark .leaflet-popup-content-wrapper { background: #21262d !important; color: #e6edf3 !important; }
     html.dark .leaflet-popup-tip { background: #21262d !important; }
-    
-    .map-search { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    html.dark .leaflet-control-zoom a { background: #21262d !important; color: #e6edf3 !important; border-color: #30363d !important; }
+    html.dark .leaflet-control-attribution { background: rgba(13,17,23,0.7) !important; color: #6e7681 !important; }
+    html.dark .leaflet-control-attribution a { color: #8b949e !important; }
+    .map-search {
+      display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+    }
     .map-search input {
       flex: 1; min-width: 200px; padding: 10px 14px; border-radius: var(--radius-sm);
       border: 1px solid var(--border); background: var(--bg-input);
@@ -232,66 +267,157 @@
       transition: border 0.2s;
     }
     .map-search input:focus { border-color: var(--border-focus); }
-    .map-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; font-size: 11px; color: var(--text-secondary); }
+    .map-search input::placeholder { color: var(--text-muted); }
+    .map-legend {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; font-size: 11px;
+      color: var(--text-secondary);
+    }
     .legend-item { display: flex; align-items: center; gap: 4px; }
-    .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 2px solid rgba(255,255,255,0.6); }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+      border: 2px solid rgba(255,255,255,0.6);
+    }
     .map-loading {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: rgba(var(--bg-header-rgb), 0.92); backdrop-filter: blur(6px);
       padding: 16px 28px; border-radius: var(--radius-sm); z-index: 10;
       font-size: 13px; font-weight: 600; color: var(--text-primary);
-      display: none; align-items: center; gap: 10px; box-shadow: var(--shadow-lg);
+      display: none; align-items: center; gap: 10px;
+      box-shadow: var(--shadow-lg);
     }
     .map-loading.show { display: flex; }
-    .spinner { width: 20px; height: 20px; border: 3px solid var(--border); border-top-color: var(--bg-accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .spinner {
+      width: 20px; height: 20px; border: 3px solid var(--border);
+      border-top-color: var(--bg-accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .map-results { margin-top: 10px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .map-results {
+      margin-top: 10px; font-size: 12px; color: var(--text-muted); font-weight: 600;
+    }
 
-    .progress-bar-wrap { background: var(--bg-input); border-radius: 50px; height: 10px; overflow: hidden; margin-bottom: 6px; }
-    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--bg-accent), #f97316); border-radius: 50px; transition: width 0.4s ease; width: 0%; }
+    /* ========== CHECKLIST ========== */
+    .progress-bar-wrap {
+      background: var(--bg-input); border-radius: 50px; height: 10px;
+      overflow: hidden; margin-bottom: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%; background: linear-gradient(90deg, var(--bg-accent), #f97316);
+      border-radius: 50px; transition: width 0.4s ease; width: 0%;
+    }
     .progress-text { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 16px; }
     .check-category { margin-bottom: 18px; }
-    .check-category-title { font-size: 13px; font-weight: 800; color: var(--text-accent); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-    .check-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-xs); transition: background 0.15s; cursor: pointer; user-select: none; }
+    .check-category-title {
+      font-size: 13px; font-weight: 800; color: var(--text-accent);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .check-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-radius: var(--radius-xs);
+      transition: background 0.15s; cursor: pointer; user-select: none;
+    }
     .check-item:hover { background: var(--bg-hover); }
     .check-item input[type="checkbox"] { display: none; }
-    .check-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; background: var(--bg-input); }
-    .check-item.checked .check-box { background: var(--text-success); border-color: var(--text-success); }
+    .check-box {
+      width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0; background: var(--bg-input);
+    }
+    .check-item.checked .check-box {
+      background: var(--text-success); border-color: var(--text-success);
+    }
     .check-box svg { width: 14px; height: 14px; color: #fff; opacity: 0; transition: opacity 0.2s; }
     .check-item.checked .check-box svg { opacity: 1; }
     .check-label { font-size: 14px; color: var(--text-primary); transition: all 0.2s; }
-    .check-item.checked .check-label { text-decoration: line-through; color: var(--text-muted); }
+    .check-item.checked .check-label {
+      text-decoration: line-through; color: var(--text-muted);
+    }
 
-    .accordion-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; overflow: hidden; transition: box-shadow 0.3s; }
+    /* ========== ACCORDION ========== */
+    .accordion-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); margin-bottom: 10px;
+      overflow: hidden; transition: box-shadow 0.3s;
+    }
     .accordion-item:hover { box-shadow: var(--shadow-sm); }
-    .accordion-header { width: 100%; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; background: none; border: none; font-size: 15px; font-weight: 700; color: var(--text-primary); cursor: pointer; text-align: left; gap: 12px; }
-    .accordion-icon { width: 24px; height: 24px; flex-shrink: 0; transition: transform 0.3s; color: var(--text-muted); }
+    .accordion-header {
+      width: 100%; padding: 16px 18px; display: flex; align-items: center;
+      justify-content: space-between; background: none; border: none;
+      font-size: 15px; font-weight: 700; color: var(--text-primary);
+      cursor: pointer; text-align: left; gap: 12px;
+    }
+    .accordion-icon {
+      width: 24px; height: 24px; flex-shrink: 0;
+      transition: transform 0.3s; color: var(--text-muted);
+    }
     .accordion-item.open .accordion-icon { transform: rotate(180deg); }
-    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+    .accordion-content {
+      max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
+    }
     .accordion-item.open .accordion-content { max-height: 5000px; }
     .accordion-body { padding: 0 18px 18px; }
 
-    .age-tabs { display: flex; gap: 4px; margin-bottom: 16px; background: var(--bg-input); border-radius: var(--radius-xs); padding: 4px; }
-    .age-tab { flex: 1; padding: 8px 6px; border: none; border-radius: var(--radius-xs); background: none; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--text-muted); transition: all 0.2s; text-align: center; }
+    /* ========== TABS (inside accordion) ========== */
+    .age-tabs {
+      display: flex; gap: 4px; margin-bottom: 16px;
+      background: var(--bg-input); border-radius: var(--radius-xs); padding: 4px;
+    }
+    .age-tab {
+      flex: 1; padding: 8px 6px; border: none; border-radius: var(--radius-xs);
+      background: none; font-size: 12px; font-weight: 700; cursor: pointer;
+      color: var(--text-muted); transition: all 0.2s; text-align: center;
+    }
     .age-tab.active { background: var(--bg-accent); color: #fff; }
     .age-panel { display: none; }
     .age-panel.active { display: block; animation: fadeIn 0.2s ease; }
 
+    /* ========== STEPS LIST ========== */
     .steps-list { counter-reset: step; list-style: none; padding: 0; }
-    .steps-list li { position: relative; padding: 8px 0 8px 40px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; counter-increment: step; }
-    .steps-list li::before { content: counter(step); position: absolute; left: 0; top: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--bg-accent-subtle); color: var(--text-accent); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+    .steps-list li {
+      position: relative; padding: 8px 0 8px 40px; font-size: 13px;
+      color: var(--text-secondary); line-height: 1.6; counter-increment: step;
+    }
+    .steps-list li::before {
+      content: counter(step);
+      position: absolute; left: 0; top: 8px;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--bg-accent-subtle); color: var(--text-accent);
+      font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
     .steps-list li strong { color: var(--text-primary); }
 
-    .alert-box { display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--radius-sm); font-size: 13px; line-height: 1.5; align-items: flex-start; }
-    .alert-warning { background: var(--bg-warning-subtle); color: var(--text-warning); border: 1px solid var(--text-warning); }
-    .alert-info { background: var(--bg-accent-subtle); color: var(--text-accent); border: 1px solid var(--text-accent); }
+    /* ========== ALERT BOX ========== */
+    .alert-box {
+      display: flex; gap: 12px; padding: 14px 16px;
+      border-radius: var(--radius-sm); font-size: 13px; line-height: 1.5;
+      align-items: flex-start;
+    }
+    .alert-warning {
+      background: var(--bg-warning-subtle); color: var(--text-warning);
+      border: 1px solid var(--text-warning);
+    }
+    .alert-info {
+      background: var(--bg-accent-subtle); color: var(--text-accent);
+      border: 1px solid var(--text-accent);
+    }
     .alert-icon { font-size: 18px; flex-shrink: 0; line-height: 1; }
 
-    .section-title { font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+    /* ========== SECTION TITLE ========== */
+    .section-title {
+      font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;
+    }
     .section-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; }
 
-    .app-footer { margin-top: 30px; padding: 18px; text-align: center; font-size: 11px; color: var(--text-muted); line-height: 1.6; border-top: 1px solid var(--border); }
+    /* ========== FOOTER ========== */
+    .app-footer {
+      margin-top: 30px; padding: 18px; text-align: center;
+      font-size: 11px; color: var(--text-muted); line-height: 1.6;
+      border-top: 1px solid var(--border);
+    }
 
+    /* ========== TOGGLE SWITCH (dark mode) ========== */
     .theme-toggle {
       width: 38px; height: 38px; padding: 0; border-radius: var(--radius-xs);
       background: var(--bg-input); border: 1px solid var(--border);
@@ -305,14 +431,38 @@
     html.dark .theme-toggle .icon-sun { display: block; }
     html.dark .theme-toggle .icon-moon { display: none; }
 
-    .custom-marker-icon { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; font-size: 17px; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.35); line-height: 1; }
+    /* ========== PULSE ANIMATION ========== */
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+      70% { box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+      100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+    }
+    .pulse { animation: pulse-ring 2s infinite; }
 
+    /* ========== CUSTOM MARKER ========== */
+    .custom-marker-icon {
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 50%;
+      font-size: 17px; border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35); line-height: 1;
+    }
+
+    /* ========== POPUP ========== */
     .popup-content { font-size: 13px; line-height: 1.5; min-width: 180px; }
     .popup-content .popup-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-    .popup-content .popup-type { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    .popup-content .popup-btn { display: inline-flex; align-items: center; gap: 5px; background: #1a73e8; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; margin-top: 4px; }
+    .popup-content .popup-type {
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+    }
+    .popup-content .popup-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #1a73e8; color: #fff; padding: 6px 12px;
+      border-radius: 6px; font-size: 12px; font-weight: 600;
+      text-decoration: none; margin-top: 4px;
+    }
     .popup-content .popup-btn:hover { background: #1557b0; text-decoration: none; }
 
+    /* ========== SCROLLBAR ========== */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -343,6 +493,7 @@
   </header>
 
   <main class="main-content">
+
     <section id="sec-inicio" class="section active">
       <div class="hero-card" style="margin-bottom:20px">
         <h1>PROTOCOLO 3-3-3</h1>
@@ -362,12 +513,12 @@
         <div class="rule-card card-accent-top">
           <div class="rule-num">3</div>
           <div class="rule-title">CANAL 3</div>
-          <div class="rule-desc">Usa el <strong>Canal 3</strong> en PMR-446 y CB-27 para emergencias</div>
+          <div class="rule-desc">Usa el <strong>Canal 3</strong> en PMR-446 y CB-27 para comunicaciones de emergencia</div>
         </div>
         <div class="rule-card card-accent-top">
           <div class="rule-num">3</div>
           <div class="rule-title">CADA 3 HORAS</div>
-          <div class="rule-desc">Transmisiones programadas <strong>cada 3 horas</strong></div>
+          <div class="rule-desc">Transmisiones programadas <strong>cada 3 horas</strong> para maximizar contacto</div>
         </div>
         <div class="rule-card card-accent-top">
           <div class="rule-num">3</div>
@@ -384,14 +535,14 @@
         </div>
         <div class="alert-box alert-info" style="margin-top:8px">
           <span class="alert-icon">📻</span>
-          <div><strong>Protocolo RX/TX:</strong> Escucha (RX) y transmite (TX) en cada ventana horaria.</div>
+          <div><strong>Protocolo RX/TX:</strong> Escucha (RX) y transmite (TX) en cada ventana horaria. Identifícate con tu indicativo o nombre y ubicación.</div>
         </div>
       </div>
 
       <div class="card" style="margin-top:16px">
         <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:14px">🕐 Horarios de Transmisión</h3>
         <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">
-          Próxima transmisión marcada en rojo.
+          Próxima transmisión marcada en rojo. Todas las horas en tu zona horaria local.
         </p>
         <div class="table-wrap">
           <table class="schedule-table" id="schedule-table">
@@ -407,6 +558,18 @@
           </table>
         </div>
         <div id="next-tx-info" style="margin-top:12px;font-size:13px;color:var(--text-accent);font-weight:700"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:12px">📋 Pasos del Protocolo</h3>
+        <ol class="steps-list">
+          <li><strong>Sintoniza</strong> el Canal 3 en tu equipo PMR-446 (446.03125 MHz) o CB-27 (26.985 MHz).</li>
+          <li><strong>Espera</strong> a la siguiente ventana horaria programada (cada 3 horas).</li>
+          <li><strong>Escucha primero</strong> (RX) durante unos segundos para no interrumpir a otros.</li>
+          <li><strong>Transmite</strong> (TX) tu mensaje: identifícate, indica ubicación y necesidad.</li>
+          <li><strong>Mantén la calma</strong> y repite el mensaje si no recibes respuesta.</li>
+          <li><strong>Libera el canal</strong> después de 3 minutos para permitir otras comunicaciones.</li>
+        </ol>
       </div>
 
       <footer class="app-footer">
@@ -486,7 +649,7 @@
 
       <div class="alert-box alert-warning" style="margin-bottom:18px">
         <span class="alert-icon">🚨</span>
-        <div><strong>¡IMPORTANTE!</strong> Llama siempre al <strong>112</strong> antes de actuar. Estas instrucciones son orientativas.</div>
+        <div><strong>¡IMPORTANTE!</strong> Llama siempre al <strong>112</strong> antes de actuar. Estas instrucciones son orientativas y no sustituyen formación profesional.</div>
       </div>
 
       <div class="accordion-item" id="acc-rcp">
@@ -496,7 +659,7 @@
         </button>
         <div class="accordion-content">
           <div class="accordion-body">
-            <img src="rcp.jpg" alt="Guía RCP - Reanimación Cardiopulmonar" style="width:100%;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;">
+            <img src="rcp.jpg" alt="Guía RCP - Reanimación Cardiopulmonar" style="width:100%;margin-bottom:16px;border:1px solid var(--border)">
 
             <div class="age-tabs" id="rcp-tabs">
               <button class="age-tab active" onclick="switchTab('rcp','adultos')">🧑 Adultos</button>
@@ -506,26 +669,36 @@
 
             <div id="rcp-adultos" class="age-panel active">
               <ol class="steps-list">
-                <li><strong>Seguridad:</strong> Verifica que la escena es segura.</li>
-                <li><strong>Consciencia:</strong> Sacude los hombros y pregunta: «¿Se encuentra bien?».</li>
-                <li><strong>Llama al 112:</strong> Solicita un DEA.</li>
-                <li><strong>Respiración:</strong> Verifica si respira normalmente (máximo 10s).</li>
-                <li><strong>30 compresiones:</strong> Centro del pecho (5-6 cm). Ritmo 100-120/min.</li>
-                <li><strong>2 ventilaciones:</strong> (Si estás capacitado). Alterna 30:2.</li>
+                <li><strong>Seguridad:</strong> Verifica que la escena es segura para ti y para la víctima.</li>
+                <li><strong>Consciencia:</strong> Sacude suavemente los hombros y pregunta en voz alta: «¿Se encuentra bien?».</li>
+                <li><strong>Llama al 112:</strong> Si no responde, llama inmediatamente (o pide a alguien que lo haga) y solicita un DEA.</li>
+                <li><strong>Vía aérea:</strong> Coloca a la víctima boca arriba. Realiza la maniobra frente-mentón (inclina la cabeza hacia atrás y eleva el mentón).</li>
+                <li><strong>Respiración:</strong> Acerca tu mejilla a su boca. <strong>Ver, oír y sentir</strong> durante máximo 10 segundos. Si no respira o solo jadea (gasping), inicia RCP.</li>
+                <li><strong>30 compresiones torácicas:</strong> Talón de la mano en el centro del pecho (esternón), brazos rectos. Profundidad: <strong>5-6 cm</strong>. Ritmo: <strong>100-120 por minuto</strong>.</li>
+                <li><strong>2 ventilaciones de rescate:</strong> Pinza la nariz, sella tu boca sobre la suya y sopla 1 segundo cada vez. El pecho debe elevarse.</li>
+                <li><strong>Continúa ciclos 30:2</strong> sin parar hasta que llegue el equipo de emergencias, la víctima se recupere o estés exhausto.</li>
               </ol>
             </div>
             <div id="rcp-pediatrico" class="age-panel">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px"><strong>Niños de 1 a 8 años (aproximadamente)</strong></p>
               <ol class="steps-list">
-                <li><strong>5 ventilaciones iniciales</strong>.</li>
-                <li><strong>30 compresiones:</strong> Usa 1 o 2 manos (5 cm). Ritmo 100-120/min.</li>
-                <li><strong>Alterna</strong> con 2 ventilaciones (30:2).</li>
+                <li><strong>Seguridad</strong> de la escena y comprueba consciencia.</li>
+                <li><strong>5 ventilaciones de rescate iniciales:</strong> Antes de las compresiones, da 5 insuflaciones suaves cubriendo boca (y nariz si es muy pequeño).</li>
+                <li><strong>30 compresiones:</strong> Usa <strong>1 o 2 manos</strong> según el tamaño del niño. Profundidad: un tercio del tórax (<strong>≈ 5 cm</strong>). Ritmo: 100-120/min.</li>
+                <li><strong>2 ventilaciones</strong> de rescate tras cada 30 compresiones.</li>
+                <li><strong>Si estás solo:</strong> Realiza <strong>1 minuto de RCP</strong> antes de llamar al 112.</li>
+                <li><strong>Continúa ciclos 30:2</strong> hasta que llegue ayuda.</li>
               </ol>
             </div>
             <div id="rcp-lactantes" class="age-panel">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px"><strong>Bebés menores de 1 año</strong></p>
               <ol class="steps-list">
-                <li><strong>5 ventilaciones iniciales</strong> (cubriendo boca y nariz).</li>
-                <li><strong>30 compresiones:</strong> Usa 2 dedos en el centro del pecho (4 cm).</li>
-                <li><strong>Alterna</strong> con 2 ventilaciones (30:2).</li>
+                <li><strong>Seguridad</strong> de la escena. Comprueba consciencia <strong>estimulando la planta del pie</strong>.</li>
+                <li><strong>5 ventilaciones de rescate iniciales:</strong> Cubre boca Y nariz del bebé con tu boca. Sopla suavemente (solo el aire de tus mejillas).</li>
+                <li><strong>30 compresiones:</strong> Usa <strong>2 dedos</strong> (índice y corazón) en el centro del pecho, justo debajo de la línea intermamilar. Profundidad: un tercio del tórax (<strong>≈ 4 cm</strong>).</li>
+                <li><strong>2 ventilaciones</strong> suaves tras cada 30 compresiones.</li>
+                <li><strong>Si estás solo:</strong> Realiza <strong>1 minuto de RCP</strong> antes de llamar al 112.</li>
+                <li><strong>Continúa ciclos 30:2</strong> hasta que llegue ayuda profesional.</li>
               </ol>
             </div>
           </div>
@@ -534,7 +707,7 @@
 
       <div class="accordion-item" id="acc-heimlich">
         <button class="accordion-header" onclick="toggleAccordion('acc-heimlich')">
-          <span>🫁 Atragantamiento (Heimlich)</span>
+          <span>🫁 Atragantamiento (Maniobra de Heimlich)</span>
           <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="accordion-content">
@@ -544,26 +717,43 @@
               <button class="age-tab" onclick="switchTab('heimlich','pediatrico')">🧒 Pediátrico</button>
               <button class="age-tab" onclick="switchTab('heimlich','lactantes')">👶 Lactantes</button>
             </div>
+
             <div id="heimlich-adultos" class="age-panel active">
+              <div class="alert-box alert-info" style="margin-bottom:12px">
+                <span class="alert-icon">💡</span>
+                <div><strong>Si la persona puede toser con fuerza</strong>, anímala a seguir tosiendo. NO intervengas mientras la tos sea efectiva.</div>
+              </div>
+              <p style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:8px">Si NO puede toser, hablar ni respirar:</p>
               <ol class="steps-list">
-                <li><strong>5 golpes interescapulares</strong> (espalda).</li>
-                <li><strong>5 compresiones abdominales</strong> (Heimlich).</li>
-                <li><strong>Alterna</strong> hasta que expulse el objeto o pierda consciencia.</li>
+                <li><strong>5 golpes interescapulares:</strong> Inclina a la persona hacia delante. Con el talón de tu mano, da 5 golpes firmes entre los omoplatos.</li>
+                <li><strong>5 compresiones abdominales (Heimlich):</strong> Colócate detrás, rodea su cintura con tus brazos. Puño cerrado entre el ombligo y el esternón. Presiona firme hacia dentro y hacia arriba.</li>
+                <li><strong>Alterna</strong> 5 golpes y 5 compresiones hasta que expulse el objeto o pierda la consciencia.</li>
+                <li><strong>Si pierde la consciencia:</strong> Tiéndela en el suelo e <strong>inicia RCP</strong>. Antes de cada ventilación, revisa la boca por si ves el objeto.</li>
               </ol>
             </div>
             <div id="heimlich-pediatrico" class="age-panel">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px"><strong>Niños de 1 a 8 años</strong></p>
               <ol class="steps-list">
-                <li><strong>5 golpes interescapulares</strong>.</li>
-                <li><strong>5 compresiones abdominales</strong> (con menos fuerza).</li>
+                <li><strong>Si tose eficazmente:</strong> Anímale a seguir tosiendo. No intervengas.</li>
+                <li><strong>5 golpes interescapulares:</strong> Arrodíllate o inclínate para estar a su altura. Golpes firmes entre los omoplatos con el talón de la mano.</li>
+                <li><strong>5 compresiones abdominales:</strong> Igual que en adultos pero <strong>con menos fuerza</strong>, adaptada al tamaño del niño.</li>
+                <li><strong>Alterna</strong> 5 golpes y 5 compresiones.</li>
+                <li><strong>Si pierde la consciencia:</strong> Colócalo en el suelo e <strong>inicia RCP pediátrica</strong>.</li>
               </ol>
             </div>
             <div id="heimlich-lactantes" class="age-panel">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px"><strong>Bebés menores de 1 año</strong></p>
               <div class="alert-box alert-warning" style="margin-bottom:12px">
-                <span class="alert-icon">⚠️</span><div><strong>NUNCA</strong> realices compresiones abdominales a un lactante.</div>
+                <span class="alert-icon">⚠️</span>
+                <div><strong>NUNCA</strong> realices compresiones abdominales (Heimlich) a un lactante. Puedes causar daño grave en órganos internos.</div>
               </div>
               <ol class="steps-list">
-                <li><strong>5 golpes en la espalda</strong> (boca abajo).</li>
-                <li><strong>5 compresiones torácicas</strong> con dos dedos (boca arriba).</li>
+                <li><strong>Boca abajo sobre tu antebrazo:</strong> Sujeta la mandíbula con tus dedos (sin tapar boca). La cabeza más baja que el cuerpo.</li>
+                <li><strong>5 golpes interescapulares:</strong> Con el talón de la mano, da 5 golpes firmes entre los omoplatos.</li>
+                <li><strong>Gira boca arriba:</strong> Apoya al bebé sobre tu otro antebrazo, sujetando la cabeza.</li>
+                <li><strong>5 compresiones torácicas:</strong> Con <strong>2 dedos</strong> en el centro del pecho (debajo de la línea intermamilar). Comprime un tercio del tórax.</li>
+                <li><strong>Alterna</strong> 5 golpes y 5 compresiones torácicas hasta resolver.</li>
+                <li><strong>Si pierde la consciencia:</strong> Inicia <strong>RCP de lactante</strong> inmediatamente.</li>
               </ol>
             </div>
           </div>
@@ -578,10 +768,17 @@
         <div class="accordion-content">
           <div class="accordion-body">
             <ol class="steps-list">
-              <li><strong>Presión directa:</strong> Con un apósito limpio directamente sobre la herida. No retires si se empapa, pon más encima.</li>
-              <li><strong>Eleva la extremidad</strong> (si aplica).</li>
-              <li><strong>Torniquete (ÚLTIMO recurso):</strong> Si es masiva en extremidad y no cede. Aplica 5cm por encima, anota hora. NO aflojar.</li>
+              <li><strong>Protégete:</strong> Si es posible, usa guantes de un solo uso antes de tocar la herida para evitar contagios.</li>
+              <li><strong>Presión directa:</strong> Coloca un apósito limpio (gasa, tela) directamente sobre la herida y presiona firmemente con tu mano. <strong>No retires el apósito</strong> aunque se empape de sangre.</li>
+              <li><strong>Añade más apósitos:</strong> Si la sangre traspasa, coloca más gasas encima sin retirar las anteriores y sigue presionando.</li>
+              <li><strong>Eleva la extremidad:</strong> Si la herida está en un brazo o pierna, elévala por encima del nivel del corazón mientras mantienes la presión.</li>
+              <li><strong>Vendaje compresivo:</strong> Una vez controlada, aplica un vendaje firme pero que no corte la circulación (debes poder pasar un dedo por debajo).</li>
+              <li><strong>Torniquete (SOLO como ÚLTIMO recurso):</strong> Si la hemorragia es masiva y no cede con presión directa: aplica un torniquete 5-7 cm por encima de la herida. <strong>ANOTA LA HORA</strong> en la frente del paciente o en el torniquete. NO lo aflojes.</li>
             </ol>
+            <div class="alert-box alert-warning" style="margin-top:14px">
+              <span class="alert-icon">🚑</span>
+              <div><strong>Llama al 112</strong> siempre ante hemorragias graves. Mantén a la víctima abrigada y acostada (posición antishock: piernas elevadas) mientras esperas la ambulancia.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -595,19 +792,27 @@
 
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="navigate('inicio')" id="nav-inicio" aria-label="Inicio">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49m11.31-2.82a10 10 0 010 14.14m-14.14 0a10 10 0 010-14.14"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49m11.31-2.82a10 10 0 010 14.14m-14.14 0a10 10 0 010-14.14"/>
+      </svg>
       <span>Inicio</span>
     </button>
     <button class="nav-btn" onclick="navigate('mapa')" id="nav-mapa" aria-label="Mapa">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+      </svg>
       <span>Mapa</span>
     </button>
     <button class="nav-btn" onclick="navigate('mochila')" id="nav-mochila" aria-label="Mochila">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="8" width="16" height="14" rx="2"/><path d="M8 8V5a4 4 0 018 0v3"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="4" y="8" width="16" height="14" rx="2"/><path d="M8 8V5a4 4 0 018 0v3"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+      </svg>
       <span>Mochila</span>
     </button>
     <button class="nav-btn" onclick="navigate('auxilios')" id="nav-auxilios" aria-label="Auxilios">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2h6v6h6v6h-6v6H9v-6H3V8h6z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M9 2h6v6h6v6h-6v6H9v-6H3V8h6z"/>
+      </svg>
       <span>Auxilios</span>
     </button>
   </nav>
@@ -619,12 +824,16 @@
     function escapeHTML(str) {
       if (!str) return '';
       return str.toString()
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+        .replace(/&/g, '&')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, '&#39;');
     }
+
+    /* ============================================================
+       PLAN 3-3-3 — MAIN APPLICATION SCRIPT
+       ============================================================ */
 
     // ===== SPA NAVIGATION =====
     const sections = ['inicio', 'mapa', 'mochila', 'auxilios'];
@@ -642,6 +851,7 @@
       currentSection = target;
       window.scrollTo({ top: 0, behavior: 'instant' });
 
+      // Lazy-init map when first opening the Map tab
       if (target === 'mapa' && !mapInitialized) {
         initMap();
         mapInitialized = true;
@@ -665,6 +875,7 @@
         localStorage.setItem('plan333-theme', 'dark');
         document.getElementById('meta-theme').setAttribute('content', '#0d1117');
       }
+      // Update map tiles filter (already handled by CSS)
       if (map) map.invalidateSize();
     }
 
@@ -686,6 +897,11 @@
         deferredInstallPrompt = null;
       });
     }
+
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('btn-install').classList.remove('show');
+      deferredInstallPrompt = null;
+    });
 
     // ===== OFFLINE DETECTION =====
     function updateOnlineStatus() {
@@ -717,23 +933,34 @@
         return { localStr, utcStr, localH: localHFloor, localMin, utcH, index: i };
       });
 
+      // Sort by local time for display
       rows.sort((a, b) => (a.localH * 60 + a.localMin) - (b.localH * 60 + b.localMin));
 
+      // Find next transmission
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
       for (let i = 0; i < rows.length; i++) {
         const rowMin = rows[i].localH * 60 + rows[i].localMin;
-        if (rowMin > nowMinutes) { nextTxIndex = i; break; }
+        if (rowMin > nowMinutes) {
+          nextTxIndex = i;
+          break;
+        }
       }
-      if (nextTxIndex === -1) nextTxIndex = 0; 
+      if (nextTxIndex === -1) nextTxIndex = 0; // wrap to first slot tomorrow
 
       tbody.innerHTML = '';
       rows.forEach((r, i) => {
         const tr = document.createElement('tr');
         if (i === nextTxIndex) tr.classList.add('next-tx');
-        tr.innerHTML = `<td>${r.localStr}</td><td>${r.utcStr} UTC</td><td>RX / TX</td><td>3 min</td>`;
+        tr.innerHTML = `
+          <td>${r.localStr}</td>
+          <td>${r.utcStr} UTC</td>
+          <td>RX / TX</td>
+          <td>3 minutos</td>
+        `;
         tbody.appendChild(tr);
       });
 
+      // Next TX info
       const next = rows[nextTxIndex];
       const nextInfo = document.getElementById('next-tx-info');
       const nextMin = next.localH * 60 + next.localMin;
@@ -744,7 +971,7 @@
       nextInfo.innerHTML = `⏱ Próxima transmisión en <strong>${diffH}h ${diffM}min</strong> (${next.localStr} hora local)`;
     }
     buildScheduleTable();
-    setInterval(buildScheduleTable, 60000);
+    setInterval(buildScheduleTable, 60000); // Update every minute
 
     // ===== MAP (LEAFLET) =====
     let map = null;
@@ -754,19 +981,28 @@
     let userMarker = null;
 
     function initMap() {
-      map = L.map('map').setView([40.4168, -3.7038], 13);
+      map = L.map('map').setView([40.4168, -3.7038], 13); // Default: Madrid
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap', maxZoom: 19
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
       }).addTo(map);
       markersLayer = L.layerGroup().addTo(map);
     }
 
     function useMyLocation() {
-      if (!navigator.geolocation) { alert('Tu navegador no soporta geolocalización.'); return; }
+      if (!navigator.geolocation) {
+        alert('Tu navegador no soporta geolocalización.');
+        return;
+      }
       showMapLoading('Obteniendo tu ubicación...');
       navigator.geolocation.getCurrentPosition(
-        pos => setMapLocation(pos.coords.latitude, pos.coords.longitude),
-        err => { hideMapLoading(); alert('Error de ubicación: ' + err.message); },
+        pos => {
+          setMapLocation(pos.coords.latitude, pos.coords.longitude);
+        },
+        err => {
+          hideMapLoading();
+          alert('No se pudo obtener tu ubicación. Error: ' + err.message);
+        },
         { enableHighAccuracy: true, timeout: 15000 }
       );
     }
@@ -775,30 +1011,59 @@
       const query = document.getElementById('search-input').value.trim();
       if (!query) return;
       showMapLoading('Buscando dirección...');
-      fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1', { headers: { 'Accept-Language': 'es' } })
-        .then(res => { if (!res.ok) throw new Error('Error: ' + res.status); return res.json(); })
+      fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1', {
+        headers: { 'Accept-Language': 'es' }
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Error en la búsqueda: ' + res.status);
+          return res.json();
+        })
         .then(data => {
-          if (!data || data.length === 0) { hideMapLoading(); alert('No se encontró la dirección.'); return; }
+          if (!data || data.length === 0) {
+            hideMapLoading();
+            alert('No se encontró la dirección. Intenta con otra búsqueda.');
+            return;
+          }
           setMapLocation(parseFloat(data[0].lat), parseFloat(data[0].lon));
         })
-        .catch(err => { hideMapLoading(); alert('Error: ' + err.message); });
+        .catch(err => {
+          hideMapLoading();
+          alert('Error al buscar: ' + err.message);
+        });
     }
 
     function setMapLocation(lat, lon) {
       if (!map) { initMap(); mapInitialized = true; }
-      userLat = lat; userLon = lon;
+      userLat = lat;
+      userLon = lon;
       map.setView([lat, lon], 15);
 
+      // Clear previous
       markersLayer.clearLayers();
       if (circleLayer) map.removeLayer(circleLayer);
       if (userMarker) map.removeLayer(userMarker);
 
+      // User marker
       userMarker = L.marker([lat, lon], {
-        icon: L.divIcon({ html: '<div class="custom-marker-icon" style="background:#3b82f6">📍</div>', className: '', iconSize: [34, 34], iconAnchor: [17, 17] })
+        icon: L.divIcon({
+          html: '<div class="custom-marker-icon" style="background:#3b82f6">📍</div>',
+          className: '', iconSize: [34, 34], iconAnchor: [17, 17]
+        })
       }).addTo(map).bindPopup('<strong>Tu ubicación</strong>');
 
-      circleLayer = L.circle([lat, lon], { radius: 1500, color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.07, weight: 2, dashArray: '8, 6' }).addTo(map);
+      // 1.5km circle
+      circleLayer = L.circle([lat, lon], {
+        radius: 1500,
+        color: '#dc2626',
+        fillColor: '#dc2626',
+        fillOpacity: 0.07,
+        weight: 2,
+        dashArray: '8, 6'
+      }).addTo(map);
+
       map.fitBounds(circleLayer.getBounds(), { padding: [20, 20] });
+
+      // Query POIs
       searchPOIs(lat, lon);
     }
 
@@ -819,9 +1084,16 @@
       `;
 
       fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST', body: 'data=' + encodeURIComponent(query), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        method: 'POST',
+        body: 'data=' + encodeURIComponent(query),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       })
-        .then(res => { if (!res.ok) throw new Error('Error 504. Servidor saturado.'); return res.json(); })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(res.status === 504 ? 'Servidor Overpass sobrecargado (504). Intenta de nuevo en unos segundos.' : 'Error del servidor: ' + res.status);
+          }
+          return res.json();
+        })
         .then(data => {
           hideMapLoading();
           const elements = data.elements || [];
@@ -835,19 +1107,18 @@
             const info = getPOIInfo(el.tags);
             if (!info) return;
 
-            // SEGURIDAD: Escapamos los datos externos antes de renderizarlos
-            const safeName = escapeHTML(el.tags.name || info.label);
-
+            const name = escapeHTML(el.tags.name || info.label);
             const marker = L.marker([elLat, elLon], {
-              icon: L.divIcon({ html: `<div class="custom-marker-icon" style="background:${info.color}">${info.emoji}</div>`, className: '', iconSize: [34, 34], iconAnchor: [17, 17] })
+              icon: L.divIcon({
+                html: `<div class="custom-marker-icon" style="background:${info.color}">${info.emoji}</div>`,
+                className: '', iconSize: [34, 34], iconAnchor: [17, 17]
+              })
             });
 
             const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lon}&destination=${elLat},${elLon}&travelmode=walking`;
-            
-            // El HTML ahora es seguro gracias a escapeHTML()
             marker.bindPopup(`
               <div class="popup-content">
-                <div class="popup-title">${safeName}</div>
+                <div class="popup-title">${name}</div>
                 <div class="popup-type">${info.label}</div>
                 <a class="popup-btn" href="${directionsUrl}" target="_blank" rel="noopener noreferrer">
                   🚶 Cómo llegar a pie
@@ -859,11 +1130,14 @@
           });
 
           document.getElementById('map-legend').style.display = 'flex';
-          document.getElementById('map-results').textContent = count > 0 ? `✅ ${count} recurso(s) encontrado(s)` : '⚠️ No se encontraron recursos.';
+          document.getElementById('map-results').textContent = count > 0
+            ? `✅ ${count} recurso${count !== 1 ? 's' : ''} encontrado${count !== 1 ? 's' : ''} en 1.5 km`
+            : '⚠️ No se encontraron recursos en esta zona.';
         })
         .catch(err => {
           hideMapLoading();
           document.getElementById('map-results').textContent = '❌ ' + err.message;
+          console.error('Overpass error:', err);
         });
     }
 
@@ -879,17 +1153,75 @@
       return null;
     }
 
-    function showMapLoading(text) { document.getElementById('map-loading-text').textContent = text || 'Cargando...'; document.getElementById('map-loading').classList.add('show'); }
-    function hideMapLoading() { document.getElementById('map-loading').classList.remove('show'); }
+    function showMapLoading(text) {
+      document.getElementById('map-loading-text').textContent = text || 'Cargando...';
+      document.getElementById('map-loading').classList.add('show');
+    }
+    function hideMapLoading() {
+      document.getElementById('map-loading').classList.remove('show');
+    }
 
     // ===== CHECKLIST =====
     const checklistData = [
-      { category: '💧 Agua y Alimentación', items: [ { id: 'agua', label: 'Agua (9L para 72h)' }, { id: 'comida', label: 'Comida no perecedera' }, { id: 'pastillas', label: 'Pastillas potabilizadoras' } ] },
-      { category: '📡 Iluminación y Comunicaciones', items: [ { id: 'linterna', label: 'Linterna LED + pilas' }, { id: 'radio', label: 'Radio AM/FM' }, { id: 'walkie', label: 'Walkie PMR-446 (Canal 3)' }, { id: 'powerbank', label: 'Powerbank + cable' } ] },
-      { category: '📄 Documentación', items: [ { id: 'dni', label: 'DNI / Pasaporte (copias)' }, { id: 'telefonos', label: 'Teléfonos impresos' }, { id: 'dinero', label: 'Efectivo' } ] },
-      { category: '🩺 Salud e Higiene', items: [ { id: 'botiquin', label: 'Botiquín 1º Auxilios' }, { id: 'medicamentos', label: 'Medicamentos crónicos' }, { id: 'higiene', label: 'Kit higiene' } ] },
-      { category: '🧥 Refugio', items: [ { id: 'manta', label: 'Manta térmica' }, { id: 'ropa', label: 'Ropa abrigo' }, { id: 'chubasquero', label: 'Chubasquero' } ] },
-      { category: '🔧 Herramientas', items: [ { id: 'navaja', label: 'Navaja multiusos' }, { id: 'fuego', label: 'Encendedor / Cerillas' }, { id: 'cinta', label: 'Cinta americana' } ] }
+      {
+        category: '💧 Agua y Alimentación',
+        items: [
+          { id: 'agua', label: 'Agua potable (3L/persona/día = 9L para 72h)' },
+          { id: 'comida', label: 'Comida no perecedera (latas, barritas, frutos secos)' },
+          { id: 'abridor', label: 'Abridor de latas manual' },
+          { id: 'pastillas', label: 'Pastillas potabilizadoras de agua' },
+        ]
+      },
+      {
+        category: '📡 Iluminación y Comunicaciones',
+        items: [
+          { id: 'linterna', label: 'Linterna LED + pilas de repuesto' },
+          { id: 'radio', label: 'Radio AM/FM (a pilas o dinamo)' },
+          { id: 'walkie', label: 'Walkie-talkie PMR-446 (Canal 3)' },
+          { id: 'silbato', label: 'Silbato de emergencia' },
+          { id: 'powerbank', label: 'Cargador portátil (powerbank) + cable USB' },
+        ]
+      },
+      {
+        category: '📄 Documentación',
+        items: [
+          { id: 'dni', label: 'DNI / Pasaporte (fotocopias plastificadas)' },
+          { id: 'seguros', label: 'Pólizas de seguro (copias)' },
+          { id: 'telefonos', label: 'Listado de teléfonos de emergencia impresos' },
+          { id: 'dinero', label: 'Dinero en efectivo (billetes pequeños y monedas)' },
+        ]
+      },
+      {
+        category: '🩺 Salud e Higiene',
+        items: [
+          { id: 'botiquin', label: 'Botiquín de primeros auxilios completo' },
+          { id: 'medicamentos', label: 'Medicamentos personales (suministro 7 días)' },
+          { id: 'mascarillas', label: 'Mascarillas FFP2' },
+          { id: 'gel', label: 'Gel hidroalcohólico desinfectante' },
+          { id: 'higiene', label: 'Kit de higiene (cepillo, pasta, toallitas húmedas)' },
+          { id: 'papel', label: 'Papel higiénico' },
+        ]
+      },
+      {
+        category: '🧥 Protección y Refugio',
+        items: [
+          { id: 'manta', label: 'Manta térmica de emergencia (x2)' },
+          { id: 'ropa', label: 'Ropa de abrigo impermeable' },
+          { id: 'guantes', label: 'Guantes de trabajo resistentes' },
+          { id: 'chubasquero', label: 'Chubasquero / poncho de lluvia' },
+        ]
+      },
+      {
+        category: '🔧 Herramientas',
+        items: [
+          { id: 'navaja', label: 'Cuchillo multiusos / navaja suiza' },
+          { id: 'cinta', label: 'Cinta americana (duct tape)' },
+          { id: 'fuego', label: 'Encendedor + cerillas impermeables' },
+          { id: 'bolsas', label: 'Bolsas de basura grandes resistentes (x5)' },
+          { id: 'cuerda', label: 'Cuerda resistente (10 metros mínimo)' },
+          { id: 'plastico', label: 'Plástico / lona multiusos (2x3 m)' },
+        ]
+      },
     ];
 
     function buildChecklist() {
@@ -902,9 +1234,11 @@
         cat.items.forEach(item => {
           const checked = saved[item.id] === true;
           html += `
-            <label class="check-item ${checked ? 'checked' : ''}" id="check-${item.id}" onclick="toggleCheck('${item.id}')">
-              <input type="checkbox" ${checked ? 'checked' : ''}>
-              <div class="check-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <label class="check-item ${checked ? 'checked' : ''}" id="check-${item.id}">
+              <input type="checkbox" onchange="toggleCheck('${item.id}', this.checked)" ${checked ? 'checked' : ''}>
+              <div class="check-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
               <span class="check-label">${item.label}</span>
             </label>
           `;
@@ -915,20 +1249,29 @@
       updateProgress();
     }
 
-    function toggleCheck(id) {
+    function toggleCheck(id, isChecked) {
       const saved = JSON.parse(localStorage.getItem('plan333-checklist') || '{}');
-      saved[id] = !saved[id];
+      saved[id] = isChecked;
       localStorage.setItem('plan333-checklist', JSON.stringify(saved));
+      
       const el = document.getElementById('check-' + id);
-      const input = el.querySelector('input');
-      if (saved[id]) { el.classList.add('checked'); input.checked = true; } else { el.classList.remove('checked'); input.checked = false; }
+      if (isChecked) { 
+        el.classList.add('checked'); 
+      } else { 
+        el.classList.remove('checked'); 
+      }
       updateProgress();
     }
 
     function updateProgress() {
       const saved = JSON.parse(localStorage.getItem('plan333-checklist') || '{}');
       let total = 0, done = 0;
-      checklistData.forEach(cat => { cat.items.forEach(item => { total++; if (saved[item.id]) done++; }); });
+      checklistData.forEach(cat => {
+        cat.items.forEach(item => {
+          total++;
+          if (saved[item.id]) done++;
+        });
+      });
       const pct = total > 0 ? Math.round((done / total) * 100) : 0;
       document.getElementById('progress-bar').style.width = pct + '%';
       document.getElementById('progress-pct').textContent = pct + '%';
@@ -937,21 +1280,33 @@
     }
 
     function clearChecklist() {
-      if (!confirm('¿Seguro que quieres reiniciar la lista?')) return;
+      if (!confirm('¿Seguro que quieres reiniciar toda la lista?')) return;
       localStorage.removeItem('plan333-checklist');
       buildChecklist();
     }
 
+    // Build checklist on load
     buildChecklist();
 
-    // ===== ACCORDION & TABS =====
-    function toggleAccordion(id) { document.getElementById(id).classList.toggle('open'); }
+    // ===== ACCORDION =====
+    function toggleAccordion(id) {
+      const item = document.getElementById(id);
+      item.classList.toggle('open');
+    }
+
+    // ===== TABS (inside accordion) =====
     function switchTab(group, tabName) {
+      // Deactivate all tabs and panels in this group
       const tabsContainer = document.getElementById(group + '-tabs');
       tabsContainer.querySelectorAll('.age-tab').forEach(t => t.classList.remove('active'));
+      // Find the parent accordion body
       const parent = tabsContainer.closest('.accordion-body');
       parent.querySelectorAll('.age-panel').forEach(p => p.classList.remove('active'));
-      document.getElementById(group + '-' + tabName).classList.add('active');
+
+      // Activate selected
+      const panelId = group + '-' + tabName;
+      document.getElementById(panelId).classList.add('active');
+      // Activate correct tab button
       event.currentTarget.classList.add('active');
     }
 
@@ -959,8 +1314,8 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW ok:', reg.scope))
-          .catch(err => console.warn('SW fallo:', err));
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.warn('SW registration failed:', err));
       });
     }
   </script>

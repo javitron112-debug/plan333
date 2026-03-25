@@ -11,7 +11,6 @@
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <!-- Prevent flash of wrong theme -->
   <script>
     (function(){
       var t = localStorage.getItem('plan333-theme');
@@ -482,12 +481,10 @@
 </head>
 <body>
 
-  <!-- ===== OFFLINE BANNER ===== -->
   <div id="offline-banner" class="offline-banner">
     <span>⚠️</span> Sin conexión a Internet — Funcionalidad limitada
   </div>
 
-  <!-- ===== HEADER ===== -->
   <header class="app-header">
     <div class="logo">
       <div class="logo-icon">333</div>
@@ -505,10 +502,8 @@
     </div>
   </header>
 
-  <!-- ===== MAIN CONTENT ===== -->
   <main class="main-content">
 
-    <!-- ==================== INICIO ==================== -->
     <section id="sec-inicio" class="section active">
       <div class="hero-card" style="margin-bottom:20px">
         <h1>PROTOCOLO 3-3-3</h1>
@@ -536,8 +531,8 @@
       <div class="card" style="margin-top:20px">
         <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:14px">📡 Frecuencias de Emergencia</h3>
         <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
-          <span class="freq-badge">PMR-446 &nbsp;→&nbsp; <strong>446.03125 MHz</strong></span>
-          <span class="freq-badge">CB-27 &nbsp;→&nbsp; <strong>26.985 MHz</strong></span>
+          <span class="freq-badge">PMR-446  →  <strong>446.03125 MHz</strong></span>
+          <span class="freq-badge">CB-27  →  <strong>26.985 MHz</strong></span>
         </div>
         <div class="alert-box alert-info" style="margin-top:8px">
           <span class="alert-icon">📻</span>
@@ -583,7 +578,6 @@
       </footer>
     </section>
 
-    <!-- ==================== MAPA ==================== -->
     <section id="sec-mapa" class="section">
       <h2 class="section-title">🗺️ Localizador 1.5 km</h2>
       <p class="section-subtitle">Busca recursos de emergencia en un radio de 1.5 km</p>
@@ -624,7 +618,6 @@
       </footer>
     </section>
 
-    <!-- ==================== MOCHILA ==================== -->
     <section id="sec-mochila" class="section">
       <h2 class="section-title">🎒 Mochila de Emergencia 72H</h2>
       <p class="section-subtitle">Lista de equipamiento esencial para las primeras 72 horas</p>
@@ -651,7 +644,6 @@
       </footer>
     </section>
 
-    <!-- ==================== AUXILIOS ==================== -->
     <section id="sec-auxilios" class="section">
       <h2 class="section-title">⛑️ Guía de Primeros Auxilios</h2>
       <p class="section-subtitle">Procedimientos básicos de emergencia médica</p>
@@ -661,7 +653,6 @@
         <div><strong>¡IMPORTANTE!</strong> Llama siempre al <strong>112</strong> antes de actuar. Estas instrucciones son orientativas y no sustituyen formación profesional.</div>
       </div>
 
-      <!-- RCP -->
       <div class="accordion-item" id="acc-rcp">
         <button class="accordion-header" onclick="toggleAccordion('acc-rcp')">
           <span>❤️ RCP — Reanimación Cardiopulmonar</span>
@@ -669,7 +660,7 @@
         </button>
         <div class="accordion-content">
           <div class="accordion-body">
-            <img src="https://github.com/javitron112-debug/plan333/blob/main/rcp.jpg" alt="Guía RCP - Reanimación Cardiopulmonar" style="width:100%;margin-bottom:16px;border:1px solid var(--border)">
+            <img src="rcp.jpg" alt="Guía RCP - Reanimación Cardiopulmonar" style="width:100%;margin-bottom:16px;border:1px solid var(--border)">
 
             <div class="age-tabs" id="rcp-tabs">
               <button class="age-tab active" onclick="switchTab('rcp','adultos')">🧑 Adultos</button>
@@ -715,7 +706,6 @@
         </div>
       </div>
 
-      <!-- ATRAGANTAMIENTO -->
       <div class="accordion-item" id="acc-heimlich">
         <button class="accordion-header" onclick="toggleAccordion('acc-heimlich')">
           <span>🫁 Atragantamiento (Maniobra de Heimlich)</span>
@@ -771,7 +761,6 @@
         </div>
       </div>
 
-      <!-- HEMORRAGIAS -->
       <div class="accordion-item" id="acc-hemorragias">
         <button class="accordion-header" onclick="toggleAccordion('acc-hemorragias')">
           <span>🩸 Control de Hemorragias</span>
@@ -802,7 +791,6 @@
 
   </main>
 
-  <!-- ===== BOTTOM NAVIGATION ===== -->
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="navigate('inicio')" id="nav-inicio" aria-label="Inicio">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -830,7 +818,6 @@
     </button>
   </nav>
 
-  <!-- ===== SCRIPTS ===== -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     /* ============================================================
@@ -985,7 +972,7 @@
     function initMap() {
       map = L.map('map').setView([40.4168, -3.7038], 13); // Default: Madrid
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19
       }).addTo(map);
       markersLayer = L.layerGroup().addTo(map);

@@ -1,476 +1,1328 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Panel de Emergencias | Plan 3-3-3</title>
-    
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#d63031">
-    <link rel="apple-touch-icon" href="icon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d1117" id="meta-theme">
+  <title>Plan 3-3-3 | Coordinación de Emergencias</title>
+  <meta name="description" content="Web de Coordinación de Emergencias Plan 3-3-3. Protocolo de comunicación por radio, localizador de recursos, checklist 72h y guía de primeros auxilios.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Prevent flash of wrong theme -->
+  <script>
+    (function(){
+      var t = localStorage.getItem('plan333-theme');
+      if(t === 'light') document.documentElement.classList.add('light');
+      else document.documentElement.classList.add('dark');
+    })();
+  </script>
+  <style>
+    /* ========== THEME VARIABLES ========== */
+    :root {
+      --bg-body: #f0f2f5;
+      --bg-header: #ffffff;
+      --bg-header-rgb: 255,255,255;
+      --bg-card: #ffffff;
+      --bg-nav: #ffffff;
+      --bg-input: #f0f2f5;
+      --bg-hover: #e8eaed;
+      --bg-accent: #dc2626;
+      --bg-accent-hover: #b91c1c;
+      --bg-accent-subtle: #fef2f2;
+      --bg-success-subtle: #dcfce7;
+      --bg-warning-subtle: #fef9c3;
+      --text-primary: #111827;
+      --text-secondary: #4b5563;
+      --text-muted: #9ca3af;
+      --text-accent: #dc2626;
+      --text-on-accent: #ffffff;
+      --text-success: #16a34a;
+      --text-warning: #a16207;
+      --border: #e5e7eb;
+      --border-focus: #dc2626;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --radius-xs: 6px;
+    }
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    html.dark {
+      --bg-body: #0d1117;
+      --bg-header: #161b22;
+      --bg-header-rgb: 22,27,34;
+      --bg-card: #161b22;
+      --bg-nav: #161b22;
+      --bg-input: #21262d;
+      --bg-hover: #30363d;
+      --bg-accent: #ef4444;
+      --bg-accent-hover: #dc2626;
+      --bg-accent-subtle: #3b1113;
+      --bg-success-subtle: #0d2818;
+      --bg-warning-subtle: #3b2f04;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --text-accent: #f87171;
+      --text-on-accent: #ffffff;
+      --text-success: #4ade80;
+      --text-warning: #facc15;
+      --border: #30363d;
+      --border-focus: #f87171;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.25);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.45);
+    }
 
-    <style>
-        :root {
-            --bg-color: #f4f7f6; --text-color: #2d3436; --card-bg: #ffffff;
-            --nav-bg: #2d3436; --nav-text: #dfe6e9; --accent-color: #d63031;
-            --accent-hover: #ff7675; --border-color: #dfe6e9;
-            --shadow: 0 4px 6px rgba(0,0,0,0.05); --input-bg: #ffffff;
-            --font-main: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
+    /* ========== BASE RESET ========== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100dvh;
+      transition: background 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+    a { color: var(--text-accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img { max-width: 100%; height: auto; border-radius: var(--radius-sm); }
+    button { cursor: pointer; font-family: inherit; }
 
-        [data-theme="dark"] {
-            --bg-color: #1a1a1a; --text-color: #eee; --card-bg: #242424;
-            --nav-bg: #121212; --nav-text: #eee; --accent-color: #ff7675;
-            --accent-hover: #fab1a0; --border-color: #333;
-            --shadow: 0 4px 6px rgba(0,0,0,0.3); --input-bg: #2d2d2d;
-        }
+    /* ========== LAYOUT ========== */
+    .app-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(var(--bg-header-rgb), 0.82);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.3s;
+    }
+    .app-header .logo { display: flex; align-items: center; gap: 10px; }
+    .app-header .logo-icon {
+      width: 34px; height: 34px; background: var(--bg-accent); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 900; font-size: 13px; letter-spacing: -0.5px;
+    }
+    .app-header .logo-text { font-weight: 800; font-size: 18px; color: var(--text-primary); }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-main); }
-        body { background-color: var(--bg-color); color: var(--text-color); transition: background 0.3s, color 0.3s; display: flex; flex-direction: column; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .main-content {
+      padding-top: 56px; padding-bottom: 76px;
+      min-height: 100dvh;
+    }
 
-        nav { background-color: var(--nav-bg); color: var(--nav-text); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 10px; }
-        .nav-brand { font-size: 1.6rem; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; text-decoration: none; color: inherit; }
-        .nav-brand i { color: var(--accent-color); }
-        
-        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
-        .nav-links button { background: none; border: none; color: var(--nav-text); font-size: 1rem; font-weight: 500; cursor: pointer; padding: 8px 15px; border-radius: 6px; transition: background 0.2s; display: flex; align-items: center; gap: 8px; }
-        .nav-links button:hover, .nav-links button.active { background-color: rgba(255,255,255,0.1); color: #fff; }
+    .section { display: none; padding: 16px; max-width: 800px; margin: 0 auto; }
+    .section.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        .controls { display: flex; gap: 12px; align-items: center; }
-        .theme-toggle { background: none; border: none; color: var(--nav-text); font-size: 1.3rem; cursor: pointer; opacity: 0.8; transition: opacity 0.2s; }
-        .theme-toggle:hover { opacity: 1; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(var(--bg-header-rgb), 0.88);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+      display: flex; height: 68px;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      transition: background 0.3s;
+    }
+    .nav-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; background: none; border: none; color: var(--text-muted);
+      font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+      transition: color 0.2s; padding: 4px 0; position: relative;
+    }
+    .nav-btn svg { width: 24px; height: 24px; transition: transform 0.2s; }
+    .nav-btn.active { color: var(--text-accent); }
+    .nav-btn.active svg { transform: scale(1.12); }
+    .nav-btn.active::before {
+      content: ''; position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+      width: 28px; height: 3px; background: var(--bg-accent); border-radius: 2px;
+    }
 
-        #install-btn { display: none; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9rem; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.1s; }
-        #install-btn:active { transform: translateY(1px); }
+    /* ========== OFFLINE BANNER ========== */
+    .offline-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      background: #dc2626; color: #fff; text-align: center;
+      padding: 10px 16px; font-size: 13px; font-weight: 600;
+      transform: translateY(-100%); transition: transform 0.35s ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .offline-banner.visible { transform: translateY(0); }
 
-        main { max-width: 1200px; margin: 30px auto; padding: 0 20px; flex: 1; width: 100%; }
-        .section { display: none; animation: fadeIn 0.4s ease-out; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    /* ========== BUTTONS ========== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px; border-radius: var(--radius-sm); border: none;
+      font-size: 14px; font-weight: 600; transition: all 0.2s; cursor: pointer;
+    }
+    .btn-primary { background: var(--bg-accent); color: var(--text-on-accent); }
+    .btn-primary:hover { background: var(--bg-accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .btn-secondary {
+      background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--bg-hover); }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn-icon {
+      width: 38px; height: 38px; padding: 0; border-radius: var(--radius-xs);
+      background: var(--bg-input); border: 1px solid var(--border);
+      color: var(--text-secondary); display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-icon:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .btn-install {
+      background: var(--bg-accent); color: #fff; border: none; border-radius: var(--radius-xs);
+      padding: 6px 12px; font-size: 12px; font-weight: 700; display: none;
+      align-items: center; gap: 5px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-install.show { display: inline-flex; }
+    .btn-install:hover { background: var(--bg-accent-hover); }
 
-        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s; }
-        
-        h1, h2, h3 { margin-bottom: 20px; color: var(--accent-color); font-weight: 800; letter-spacing: -1px; }
-        h1 { font-size: 2.5rem; }
-        h2 { font-size: 2rem; border-left: 4px solid var(--accent-color); padding-left: 15px; }
-        h3 { font-size: 1.5rem; margin-top: 20px; }
-        h4 { margin-top: 20px; margin-bottom: 10px; color: var(--text-color); font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
+    /* ========== CARDS ========== */
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+      box-shadow: var(--shadow-sm); transition: all 0.3s;
+    }
+    .card:hover { box-shadow: var(--shadow-md); }
+    .card-accent {
+      border-left: 4px solid var(--bg-accent); background: var(--bg-accent-subtle);
+    }
+    .card-accent-top { border-top: 3px solid var(--bg-accent); }
 
-        p { line-height: 1.8; margin-bottom: 18px; font-size: 1.05rem; opacity: 0.9; }
-        ul, ol { margin-bottom: 18px; padding-left: 20px; line-height: 1.8; }
-        li { margin-bottom: 10px; }
+    /* ========== HERO ========== */
+    .hero-card {
+      background: linear-gradient(135deg, var(--bg-accent), #991b1b);
+      color: #fff; border-radius: var(--radius); padding: 28px 24px;
+      text-align: center; position: relative; overflow: hidden;
+    }
+    html.light .hero-card { background: linear-gradient(135deg, #dc2626, #991b1b); }
+    .hero-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 60%);
+    }
+    .hero-card h1 { font-size: 32px; font-weight: 900; position: relative; }
+    .hero-card p { font-size: 15px; opacity: 0.92; position: relative; margin-top: 8px; }
 
-        .highlight-box { background: linear-gradient(135deg, rgba(214, 48, 49, 0.1) 0%, rgba(214, 48, 49, 0.05) 100%); padding: 25px; border-left: 6px solid var(--accent-color); margin-bottom: 25px; border-radius: 4px 12px 12px 4px; }
-        .highlight-box h3 { color: var(--text-color); margin-bottom: 15px; }
-        .highlight-box ul { list-style: none; padding-left: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-        .highlight-box li { background-color: var(--card-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 0; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); }
-        .highlight-box li i { color: var(--accent-color); font-size: 1.3rem; width: 25px; text-align: center; }
+    /* ========== RULE CARDS ========== */
+    .rule-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 18px; }
+    @media (min-width: 640px) { .rule-grid { grid-template-columns: repeat(3, 1fr); } }
+    .rule-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px 16px; text-align: center; box-shadow: var(--shadow-sm);
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .rule-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .rule-num {
+      font-size: 42px; font-weight: 900; color: var(--text-accent);
+      line-height: 1; margin-bottom: 6px;
+    }
+    .rule-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+    .rule-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 
-        .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 25px; box-shadow: var(--shadow); }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th, td { padding: 18px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background-color: var(--nav-bg); color: var(--nav-text); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
-        tr:nth-child(even) { background-color: rgba(0,0,0,0.02); }
-        [data-theme="dark"] tr:nth-child(even) { background-color: rgba(255,255,255,0.02); }
+    /* ========== FREQUENCY BADGE ========== */
+    .freq-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--bg-accent-subtle); border: 1px solid var(--border);
+      border-radius: 50px; padding: 8px 18px; font-weight: 700;
+      font-size: 14px; color: var(--text-accent);
+    }
 
-        .search-container { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; background-color: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow); }
-        .search-container input { flex: 1; min-width: 280px; padding: 15px; border: 2px solid var(--border-color); border-radius: 8px; background-color: var(--input-bg); color: var(--text-color); font-size: 1rem; transition: border-color 0.2s; }
-        .search-container input:focus { outline: none; border-color: var(--accent-color); }
-        .search-container button { padding: 15px 30px; background: linear-gradient(135deg, var(--accent-color) 0%, #a32425 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(214, 48, 49, 0.2); }
+    /* ========== TABLE ========== */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .schedule-table th {
+      background: var(--bg-accent); color: #fff; padding: 10px 14px;
+      text-align: left; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .schedule-table td {
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      color: var(--text-secondary); background: var(--bg-card);
+    }
+    .schedule-table tr:last-child td { border-bottom: none; }
+    .schedule-table tr.next-tx td {
+      background: var(--bg-accent-subtle); color: var(--text-accent); font-weight: 700;
+    }
+    .schedule-table tr.next-tx td:first-child::before { content: '▶ '; }
 
-        #map { height: 65vh; width: 100%; border-radius: 12px; z-index: 1; border: 2px solid var(--border-color); box-shadow: inset 0 0 15px rgba(0,0,0,0.1); }
-        .map-status { text-align: center; padding: 30px; font-weight: 700; background-color: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 25px; color: var(--accent-color); font-size: 1.1rem; }
-        .offline-warning { display: none; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #000; padding: 15px; text-align: center; font-weight: 700; margin-bottom: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 80px; z-index: 900; }
-        .error-message { color: var(--accent-color); font-weight: 700; background-color: rgba(214, 48, 49, 0.1); padding: 15px; border-radius: 8px; border: 1px solid var(--accent-color); }
+    /* ========== MAP ========== */
+    #map-container { position: relative; }
+    #map {
+      width: 100%; height: 400px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); z-index: 1;
+    }
+    @media (min-width: 640px) { #map { height: 500px; } }
+    html.dark .leaflet-tile-pane {
+      filter: brightness(0.7) invert(1) contrast(2.8) hue-rotate(200deg) saturate(0.25) brightness(0.82);
+    }
+    .leaflet-popup-content-wrapper {
+      border-radius: 10px !important; box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+    }
+    html.dark .leaflet-popup-content-wrapper { background: #21262d !important; color: #e6edf3 !important; }
+    html.dark .leaflet-popup-tip { background: #21262d !important; }
+    html.dark .leaflet-control-zoom a { background: #21262d !important; color: #e6edf3 !important; border-color: #30363d !important; }
+    html.dark .leaflet-control-attribution { background: rgba(13,17,23,0.7) !important; color: #6e7681 !important; }
+    html.dark .leaflet-control-attribution a { color: #8b949e !important; }
+    .map-search {
+      display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .map-search input {
+      flex: 1; min-width: 200px; padding: 10px 14px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--bg-input);
+      color: var(--text-primary); font-size: 14px; outline: none;
+      transition: border 0.2s;
+    }
+    .map-search input:focus { border-color: var(--border-focus); }
+    .map-search input::placeholder { color: var(--text-muted); }
+    .map-legend {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+      border: 2px solid rgba(255,255,255,0.6);
+    }
+    .map-loading {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(var(--bg-header-rgb), 0.92); backdrop-filter: blur(6px);
+      padding: 16px 28px; border-radius: var(--radius-sm); z-index: 10;
+      font-size: 13px; font-weight: 600; color: var(--text-primary);
+      display: none; align-items: center; gap: 10px;
+      box-shadow: var(--shadow-lg);
+    }
+    .map-loading.show { display: flex; }
+    .spinner {
+      width: 20px; height: 20px; border: 3px solid var(--border);
+      border-top-color: var(--bg-accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .map-results {
+      margin-top: 10px; font-size: 12px; color: var(--text-muted); font-weight: 600;
+    }
 
-        .route-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; padding: 12px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: #fff !important; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem; text-transform: uppercase; text-align: center; width: 100%; transition: opacity 0.2s; }
+    /* ========== CHECKLIST ========== */
+    .progress-bar-wrap {
+      background: var(--bg-input); border-radius: 50px; height: 10px;
+      overflow: hidden; margin-bottom: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%; background: linear-gradient(90deg, var(--bg-accent), #f97316);
+      border-radius: 50px; transition: width 0.4s ease; width: 0%;
+    }
+    .progress-text { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 16px; }
+    .check-category { margin-bottom: 18px; }
+    .check-category-title {
+      font-size: 13px; font-weight: 800; color: var(--text-accent);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .check-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-radius: var(--radius-xs);
+      transition: background 0.15s; cursor: pointer; user-select: none;
+    }
+    .check-item:hover { background: var(--bg-hover); }
+    .check-item input[type="checkbox"] { display: none; }
+    .check-box {
+      width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0; background: var(--bg-input);
+    }
+    .check-item.checked .check-box {
+      background: var(--text-success); border-color: var(--text-success);
+    }
+    .check-box svg { width: 14px; height: 14px; color: #fff; opacity: 0; transition: opacity 0.2s; }
+    .check-item.checked .check-box svg { opacity: 1; }
+    .check-label { font-size: 14px; color: var(--text-primary); transition: all 0.2s; }
+    .check-item.checked .check-label {
+      text-decoration: line-through; color: var(--text-muted);
+    }
 
-        .checklist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
-        .checklist-category { background-color: var(--bg-color); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
-        .checklist-category h3 { display: flex; align-items: center; gap: 10px; font-size: 1.3rem; margin-top: 0; }
-        .check-item { display: flex; align-items: center; margin-bottom: 12px; padding: 12px 15px; border-radius: 8px; background-color: var(--card-bg); border: 1px solid var(--border-color); cursor: pointer; }
-        .check-item input[type="checkbox"] { width: 22px; height: 22px; margin-right: 18px; cursor: pointer; accent-color: var(--accent-color); }
-        .check-item label { cursor: pointer; flex-grow: 1; user-select: none; font-size: 1.05rem; font-weight: 500; }
-        .check-item input:checked + label { text-decoration: line-through; opacity: 0.5; }
+    /* ========== ACCORDION ========== */
+    .accordion-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); margin-bottom: 10px;
+      overflow: hidden; transition: box-shadow 0.3s;
+    }
+    .accordion-item:hover { box-shadow: var(--shadow-sm); }
+    .accordion-header {
+      width: 100%; padding: 16px 18px; display: flex; align-items: center;
+      justify-content: space-between; background: none; border: none;
+      font-size: 15px; font-weight: 700; color: var(--text-primary);
+      cursor: pointer; text-align: left; gap: 12px;
+    }
+    .accordion-icon {
+      width: 24px; height: 24px; flex-shrink: 0;
+      transition: transform 0.3s; color: var(--text-muted);
+    }
+    .accordion-item.open .accordion-icon { transform: rotate(180deg); }
+    .accordion-content {
+      max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
+    }
+    .accordion-item.open .accordion-content { max-height: 5000px; }
+    .accordion-body { padding: 0 18px 18px; }
 
-        details { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 15px; padding: 15px 25px; box-shadow: var(--shadow); }
-        details[open] { border-color: var(--accent-color); }
-        summary { font-weight: 700; font-size: 1.2rem; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 15px 0; outline: none; color: var(--text-color); }
-        summary::-webkit-details-marker { display: none; }
-        summary::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; transition: transform 0.3s; color: var(--accent-color); }
-        details[open] summary::after { transform: rotate(180deg); color: var(--text-color); }
-        details p, details ul, details ol { margin-top: 15px; padding-bottom: 10px; line-height: 1.8; border-top: 1px solid var(--border-color); padding-top: 15px; }
+    /* ========== TABS (inside accordion) ========== */
+    .age-tabs {
+      display: flex; gap: 4px; margin-bottom: 16px;
+      background: var(--bg-input); border-radius: var(--radius-xs); padding: 4px;
+    }
+    .age-tab {
+      flex: 1; padding: 8px 6px; border: none; border-radius: var(--radius-xs);
+      background: none; font-size: 12px; font-weight: 700; cursor: pointer;
+      color: var(--text-muted); transition: all 0.2s; text-align: center;
+    }
+    .age-tab.active { background: var(--bg-accent); color: #fff; }
+    .age-panel { display: none; }
+    .age-panel.active { display: block; animation: fadeIn 0.2s ease; }
 
-        .info-img { width: 100%; max-width: 800px; height: auto; border-radius: 12px; margin: 20px 0; border: 2px solid var(--border-color); display: block; box-shadow: var(--shadow); }
+    /* ========== STEPS LIST ========== */
+    .steps-list { counter-reset: step; list-style: none; padding: 0; }
+    .steps-list li {
+      position: relative; padding: 8px 0 8px 40px; font-size: 13px;
+      color: var(--text-secondary); line-height: 1.6; counter-increment: step;
+    }
+    .steps-list li::before {
+      content: counter(step);
+      position: absolute; left: 0; top: 8px;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--bg-accent-subtle); color: var(--text-accent);
+      font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .steps-list li strong { color: var(--text-primary); }
 
-        footer { background-color: var(--nav-bg); color: #aaa; text-align: justify; padding: 30px 2rem; font-size: 0.9rem; border-top: 4px solid var(--accent-color); margin-top: auto; line-height: 1.6; }
-        footer p { margin-bottom: 0; opacity: 0.7; }
+    /* ========== ALERT BOX ========== */
+    .alert-box {
+      display: flex; gap: 12px; padding: 14px 16px;
+      border-radius: var(--radius-sm); font-size: 13px; line-height: 1.5;
+      align-items: flex-start;
+    }
+    .alert-warning {
+      background: var(--bg-warning-subtle); color: var(--text-warning);
+      border: 1px solid var(--text-warning);
+    }
+    .alert-info {
+      background: var(--bg-accent-subtle); color: var(--text-accent);
+      border: 1px solid var(--text-accent);
+    }
+    .alert-icon { font-size: 18px; flex-shrink: 0; line-height: 1; }
 
-        @media (max-width: 768px) {
-            nav { padding: 1rem; flex-direction: column; text-align: center; }
-            .nav-brand { justify-content: center; margin-bottom: 10px; }
-            .nav-links { justify-content: center; width: 100%; }
-            .controls { width: 100%; justify-content: center; margin-top: 10px; }
-            #map { height: 50vh; }
-            .search-container button { width: 100%; }
-        }
-    </style>
+    /* ========== SECTION TITLE ========== */
+    .section-title {
+      font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;
+    }
+    .section-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; }
+
+    /* ========== FOOTER ========== */
+    .app-footer {
+      margin-top: 30px; padding: 18px; text-align: center;
+      font-size: 11px; color: var(--text-muted); line-height: 1.6;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ========== TOGGLE SWITCH (dark mode) ========== */
+    .theme-toggle {
+      width: 38px; height: 38px; padding: 0; border-radius: var(--radius-xs);
+      background: var(--bg-input); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s; color: var(--text-secondary);
+    }
+    .theme-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .theme-toggle svg { width: 20px; height: 20px; }
+    .theme-toggle .icon-sun { display: none; }
+    .theme-toggle .icon-moon { display: block; }
+    html.dark .theme-toggle .icon-sun { display: block; }
+    html.dark .theme-toggle .icon-moon { display: none; }
+
+    /* ========== PULSE ANIMATION ========== */
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+      70% { box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+      100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+    }
+    .pulse { animation: pulse-ring 2s infinite; }
+
+    /* ========== CUSTOM MARKER ========== */
+    .custom-marker-icon {
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 50%;
+      font-size: 17px; border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35); line-height: 1;
+    }
+
+    /* ========== POPUP ========== */
+    .popup-content { font-size: 13px; line-height: 1.5; min-width: 180px; }
+    .popup-content .popup-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .popup-content .popup-type {
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+    }
+    .popup-content .popup-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #1a73e8; color: #fff; padding: 6px 12px;
+      border-radius: 6px; font-size: 12px; font-weight: 600;
+      text-decoration: none; margin-top: 4px;
+    }
+    .popup-content .popup-btn:hover { background: #1557b0; text-decoration: none; }
+
+    /* ========== SCROLLBAR ========== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
 </head>
 <body>
 
-    <nav>
-        <div class="nav-brand"><i class="fa-solid fa-tower-broadcast"></i> INFO-EMERGENCIA</div>
-        <div class="nav-links">
-            <button class="tab-btn active" onclick="openTab('inicio')"><i class="fa-solid fa-house"></i> Plan 333</button>
-            <button class="tab-btn" onclick="openTab('mapa')"><i class="fa-solid fa-map-location-dot"></i> Mapa 1.5km</button>
-            <button class="tab-btn" onclick="openTab('mochila')"><i class="fa-solid fa-backpack"></i> Mochila</button>
-            <button class="tab-btn" onclick="openTab('auxilios')"><i class="fa-solid fa-briefcase-medical"></i> 1º Auxilios</button>
+  <!-- ===== OFFLINE BANNER ===== -->
+  <div id="offline-banner" class="offline-banner">
+    <span>⚠️</span> Sin conexión a Internet — Funcionalidad limitada
+  </div>
+
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <div class="logo">
+      <div class="logo-icon">333</div>
+      <span class="logo-text">Plan 3-3-3</span>
+    </div>
+    <div class="header-actions">
+      <button id="btn-install" class="btn-install" onclick="installApp()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        Instalar
+      </button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+
+    <!-- ==================== INICIO ==================== -->
+    <section id="sec-inicio" class="section active">
+      <div class="hero-card" style="margin-bottom:20px">
+        <h1>PROTOCOLO 3-3-3</h1>
+        <p>Regla de oro para coordinación de emergencias por radio</p>
+      </div>
+
+      <div class="rule-grid">
+        <div class="rule-card card-accent-top">
+          <div class="rule-num">3</div>
+          <div class="rule-title">CANAL 3</div>
+          <div class="rule-desc">Usa el <strong>Canal 3</strong> en PMR-446 y CB-27 para comunicaciones de emergencia</div>
         </div>
-        <div class="controls">
-            <button id="install-btn"><i class="fa-solid fa-download"></i> Instalar App</button>
-            <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+        <div class="rule-card card-accent-top">
+          <div class="rule-num">3</div>
+          <div class="rule-title">CADA 3 HORAS</div>
+          <div class="rule-desc">Transmisiones programadas <strong>cada 3 horas</strong> para maximizar contacto</div>
         </div>
-    </nav>
-
-    <main>
-        <div id="offline-warning" class="offline-warning">
-            <i class="fa-solid fa-wifi-slash"></i> Estás sin conexión a internet. El mapa no funcionará, pero el contenido guardado está disponible.
+        <div class="rule-card card-accent-top">
+          <div class="rule-num">3</div>
+          <div class="rule-title">3 MINUTOS</div>
+          <div class="rule-desc">Cada ventana de transmisión dura exactamente <strong>3 minutos</strong></div>
         </div>
+      </div>
 
-        <section id="inicio" class="section active">
-            <div class="card">
-                <h1>Coordinación de Emergencias Civil</h1>
-                <p>Panel central informativo para escenarios de colapso de redes de comunicación. Basado en protocolos de contingencia de banda libre.</p>
-                
-                <h2>El Plan 3-3-3 de Comunicaciones</h2>
-                <p>Protocolo civil de supervivencia energética. Maximiza la duración de la batería sintonizando solo en ventanas de tiempo críticas.</p>
-                
-                <div class="highlight-box">
-                    <h3>REGLA DE ORO DE LOS 3</h3>
-                    <ul>
-                        <li><i class="fa-solid fa-walkie-talkie"></i> <div><strong>1. Sintonizar CANAL 3</strong><br><span style="font-weight:400;font-size:0.9rem">PMR-446 o CB-27</span></div></li>
-                        <li><i class="fa-solid fa-clock"></i> <div><strong>2. RX y TX cada 3 HORAS</strong><br><span style="font-weight:400;font-size:0.9rem">Sincronización global</span></div></li>
-                        <li><i class="fa-solid fa-battery-quarter"></i> <div><strong>3. Durante 3 MINUTOS</strong><br><span style="font-weight:400;font-size:0.9rem">Ahorro estricto de energía</span></div></li>
-                    </ul>
-                </div>
+      <div class="card" style="margin-top:20px">
+        <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:14px">📡 Frecuencias de Emergencia</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+          <span class="freq-badge">PMR-446 &nbsp;→&nbsp; <strong>446.03125 MHz</strong></span>
+          <span class="freq-badge">CB-27 &nbsp;→&nbsp; <strong>26.985 MHz</strong></span>
+        </div>
+        <div class="alert-box alert-info" style="margin-top:8px">
+          <span class="alert-icon">📻</span>
+          <div><strong>Protocolo RX/TX:</strong> Escucha (RX) y transmite (TX) en cada ventana horaria. Identifícate con tu indicativo o nombre y ubicación.</div>
+        </div>
+      </div>
 
-                <h4>Frecuencias Técnicas</h4>
-                <ul>
-                    <li><strong>Equipos PMR-446 (Sin licencia):</strong> Canal 3 -> <strong>446.03125 MHz</strong> (FM). Sin subtonos.</li>
-                    <li><strong>Banda Ciudadana (CB-27):</strong> Canal 3 -> <strong>26.985 MHz</strong> (AM/FM).</li>
-                </ul>
+      <div class="card" style="margin-top:16px">
+        <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:14px">🕐 Horarios de Transmisión</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">
+          Próxima transmisión marcada en rojo. Todas las horas en tu zona horaria local.
+        </p>
+        <div class="table-wrap">
+          <table class="schedule-table" id="schedule-table">
+            <thead>
+              <tr>
+                <th>Hora Local</th>
+                <th>Hora UTC</th>
+                <th>Acción</th>
+                <th>Duración</th>
+              </tr>
+            </thead>
+            <tbody id="schedule-body"></tbody>
+          </table>
+        </div>
+        <div id="next-tx-info" style="margin-top:12px;font-size:13px;color:var(--text-accent);font-weight:700"></div>
+      </div>
 
-                <h3>Horarios y Protocolo de Ventana</h3>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr><th>Hora Local</th><th>Protocolo de la Ventana de 3 Minutos</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>00:00 / 03:00 / 06:00 / 09:00<br>12:00 / 15:00 / 18:00 / 21:00</td>
-                                <td>
-                                    <strong>Minuto 1:</strong> Solo escucha estricta.<br>
-                                    <strong>Minuto 2:</strong> Solo emergencias vitales (Mayday).<br>
-                                    <strong>Minuto 3:</strong> Información y coordinación general.<br>
-                                    <em>Al terminar los 3 min, apagar el equipo inmediatamente.</em>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+      <div class="card" style="margin-top:16px">
+        <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:12px">📋 Pasos del Protocolo</h3>
+        <ol class="steps-list">
+          <li><strong>Sintoniza</strong> el Canal 3 en tu equipo PMR-446 (446.03125 MHz) o CB-27 (26.985 MHz).</li>
+          <li><strong>Espera</strong> a la siguiente ventana horaria programada (cada 3 horas).</li>
+          <li><strong>Escucha primero</strong> (RX) durante unos segundos para no interrumpir a otros.</li>
+          <li><strong>Transmite</strong> (TX) tu mensaje: identifícate, indica ubicación y necesidad.</li>
+          <li><strong>Mantén la calma</strong> y repite el mensaje si no recibes respuesta.</li>
+          <li><strong>Libera el canal</strong> después de 3 minutos para permitir otras comunicaciones.</li>
+        </ol>
+      </div>
+
+      <footer class="app-footer">
+        ⚖️ <strong>Aviso Legal:</strong> Esta página web es de carácter estrictamente informativo. No sustituye consejo médico ni instrucciones del 112. Uso bajo responsabilidad del usuario.
+      </footer>
+    </section>
+
+    <!-- ==================== MAPA ==================== -->
+    <section id="sec-mapa" class="section">
+      <h2 class="section-title">🗺️ Localizador 1.5 km</h2>
+      <p class="section-subtitle">Busca recursos de emergencia en un radio de 1.5 km</p>
+
+      <div class="map-search">
+        <input type="text" id="search-input" placeholder="Buscar dirección..." autocomplete="off"
+          onkeydown="if(event.key==='Enter')searchAddress()">
+        <button class="btn btn-primary" onclick="searchAddress()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          Buscar
+        </button>
+        <button class="btn btn-secondary" onclick="useMyLocation()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+          Mi ubicación
+        </button>
+      </div>
+
+      <div id="map-container">
+        <div id="map"></div>
+        <div id="map-loading" class="map-loading">
+          <div class="spinner"></div>
+          <span id="map-loading-text">Buscando recursos...</span>
+        </div>
+      </div>
+
+      <div class="map-legend" id="map-legend" style="display:none">
+        <span class="legend-item"><span class="legend-dot" style="background:#e74c3c"></span> Hospitales</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#3498db"></span> Policía</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#e67e22"></span> Bomberos</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#9b59b6"></span> Bibliotecas</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#1abc9c"></span> C. Cívicos</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#2ecc71"></span> Rescate</span>
+      </div>
+      <div id="map-results" class="map-results"></div>
+
+      <footer class="app-footer">
+        ⚖️ <strong>Aviso Legal:</strong> Esta página web es de carácter estrictamente informativo. No sustituye consejo médico ni instrucciones del 112. Uso bajo responsabilidad del usuario.
+      </footer>
+    </section>
+
+    <!-- ==================== MOCHILA ==================== -->
+    <section id="sec-mochila" class="section">
+      <h2 class="section-title">🎒 Mochila de Emergencia 72H</h2>
+      <p class="section-subtitle">Lista de equipamiento esencial para las primeras 72 horas</p>
+
+      <div class="card" style="margin-bottom:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:14px;font-weight:700;color:var(--text-primary)">Progreso</span>
+          <span id="progress-pct" style="font-size:13px;font-weight:700;color:var(--text-accent)">0%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <div class="progress-text"><span id="progress-count">0</span> de <span id="progress-total">0</span> elementos preparados</div>
+        <button class="btn btn-secondary btn-sm" onclick="clearChecklist()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          Reiniciar
+        </button>
+      </div>
+
+      <div id="checklist-container"></div>
+
+      <footer class="app-footer">
+        ⚖️ <strong>Aviso Legal:</strong> Esta página web es de carácter estrictamente informativo. No sustituye consejo médico ni instrucciones del 112. Uso bajo responsabilidad del usuario.
+      </footer>
+    </section>
+
+    <!-- ==================== AUXILIOS ==================== -->
+    <section id="sec-auxilios" class="section">
+      <h2 class="section-title">⛑️ Guía de Primeros Auxilios</h2>
+      <p class="section-subtitle">Procedimientos básicos de emergencia médica</p>
+
+      <div class="alert-box alert-warning" style="margin-bottom:18px">
+        <span class="alert-icon">🚨</span>
+        <div><strong>¡IMPORTANTE!</strong> Llama siempre al <strong>112</strong> antes de actuar. Estas instrucciones son orientativas y no sustituyen formación profesional.</div>
+      </div>
+
+      <!-- RCP -->
+      <div class="accordion-item" id="acc-rcp">
+        <button class="accordion-header" onclick="toggleAccordion('acc-rcp')">
+          <span>❤️ RCP — Reanimación Cardiopulmonar</span>
+          <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <img src="rcp.jpg" alt="Guía RCP - Reanimación Cardiopulmonar" style="width:100%;margin-bottom:16px;border:1px solid var(--border)">
+
+            <div class="age-tabs" id="rcp-tabs">
+              <button class="age-tab active" onclick="switchTab('rcp','adultos')">🧑 Adultos</button>
+              <button class="age-tab" onclick="switchTab('rcp','pediatrico')">🧒 Pediátrico</button>
+              <button class="age-tab" onclick="switchTab('rcp','lactantes')">👶 Lactantes</button>
             </div>
-        </section>
 
-        <section id="mapa" class="section">
-            <div class="card">
-                <h2>Localizador de Recursos Críticos (1.5km)</h2>
-                <p>Introduce tu dirección para buscar hospitales, policía, bomberos, centros cívicos, bibliotecas y bases de rescate en un radio a pie.</p>
-                
-                <div class="search-container">
-                    <input type="text" id="address-input" placeholder="Ej: Calle Mayor 1, Madrid" onkeypress="handleEnter(event)">
-                    <button onclick="searchAddress()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
-                </div>
-
-                <div id="map-status" class="map-status" style="display:none;"></div>
-                <div id="map" style="display: none;"></div>
+            <div id="rcp-adultos" class="age-panel active">
+              <ol class="steps-list">
+                <li><strong>Seguridad:</strong> Verifica que la escena es segura para ti y para la víctima.</li>
+                <li><strong>Consciencia:</strong> Sacude suavemente los hombros y pregunta en voz alta: «¿Se encuentra bien?».</li>
+                <li><strong>Llama al 112:</strong> Si no responde, llama inmediatamente (o pide a alguien que lo haga) y solicita un DEA.</li>
+                <li><strong>Vía aérea:</strong> Coloca a la víctima boca arriba. Realiza la maniobra frente-mentón (inclina la cabeza hacia atrás y eleva el mentón).</li>
+                <li><strong>Respiración:</strong> Acerca tu mejilla a su boca. <strong>Ver, oír y sentir</strong> durante máximo 10 segundos. Si no respira o solo jadea (gasping), inicia RCP.</li>
+                <li><strong>30 compresiones torácicas:</strong> Talón de la mano en el centro del pecho (esternón), brazos rectos. Profundidad: <strong>5-6 cm</strong>. Ritmo: <strong>100-120 por minuto</strong>.</li>
+                <li><strong>2 ventilaciones de rescate:</strong> Pinza la nariz, sella tu boca sobre la suya y sopla 1 segundo cada vez. El pecho debe elevarse.</li>
+                <li><strong>Continúa ciclos 30:2</strong> sin parar hasta que llegue el equipo de emergencias, la víctima se recupere o estés exhausto.</li>
+              </ol>
             </div>
-        </section>
-
-        <section id="mochila" class="section">
-            <div class="card">
-                <h2>Mochila de Emergencia (72 Horas)</h2>
-                <p>Equipamiento básico para sobrevivir autocontenidos los primeros 3 días. Tu progreso se guarda en este dispositivo.</p>
-                
-                <div class="checklist-grid">
-                    <div class="checklist-category">
-                        <h3><i class="fa-solid fa-bottle-water"></i> Agua y Comida</h3>
-                        <div class="check-item"><input type="checkbox" id="chk-agua"><label for="chk-agua">Agua (9L por persona)</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-filtro"><label for="chk-filtro">Filtro / Pastillas potabilizadoras</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-comida"><label for="chk-comida">Comida no perecedera</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-abrelatas"><label for="chk-abrelatas">Abrelatas manual</label></div>
-                    </div>
-                    <div class="checklist-category">
-                        <h3><i class="fa-solid fa-kit-medical"></i> Salud e Higiene</h3>
-                        <div class="check-item"><input type="checkbox" id="chk-botiquin"><label for="chk-botiquin">Botiquín completo</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-meds"><label for="chk-meds">Medicación crónica</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-papel"><label for="chk-papel">Papel higiénico / Toallitas</label></div>
-                    </div>
-                    <div class="checklist-category">
-                        <h3><i class="fa-solid fa-walkie-talkie"></i> Energía y Radio</h3>
-                        <div class="check-item"><input type="checkbox" id="chk-radio"><label for="chk-radio">Radio PMR / CB / AM-FM</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-linterna"><label for="chk-linterna">Linterna + Pilas repuesto</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-powerbank"><label for="chk-powerbank">Powerbank cargado + Cables</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-silbato"><label for="chk-silbato">Silbato de emergencia</label></div>
-                    </div>
-                    <div class="checklist-category">
-                        <h3><i class="fa-solid fa-toolbox"></i> Herramientas</h3>
-                        <div class="check-item"><input type="checkbox" id="chk-navaja"><label for="chk-navaja">Navaja multiusos</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-manta"><label for="chk-manta">Manta térmica</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-fuego"><label for="chk-fuego">Mecheros / Pedernal</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-cinta"><label for="chk-cinta">Cinta americana + Cuerda</label></div>
-                    </div>
-                </div>
+            <div id="rcp-pediatrico" class="age-panel">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px"><strong>Niños de 1 a 8 años (aproximadamente)</strong></p>
+              <ol class="steps-list">
+                <li><strong>Seguridad</strong> de la escena y comprueba consciencia.</li>
+                <li><strong>5 ventilaciones de rescate iniciales:</strong> Antes de las compresiones, da 5 insuflaciones suaves cubriendo boca (y nariz si es muy pequeño).</li>
+                <li><strong>30 compresiones:</strong> Usa <strong>1 o 2 manos</strong> según el tamaño del niño. Profundidad: un tercio del tórax (<strong>≈ 5 cm</strong>). Ritmo: 100-120/min.</li>
+                <li><strong>2 ventilaciones</strong> de rescate tras cada 30 compresiones.</li>
+                <li><strong>Si estás solo:</strong> Realiza <strong>1 minuto de RCP</strong> antes de llamar al 112.</li>
+                <li><strong>Continúa ciclos 30:2</strong> hasta que llegue ayuda.</li>
+              </ol>
             </div>
-        </section>
-
-        <section id="auxilios" class="section">
-            <div class="card">
-                <h2>Primeros Auxilios Básicos</h2>
-                <div class="error-message" style="margin-bottom:20px; color:#fff; background-color: var(--accent-color); border:none;">
-                    <i class="fa-solid fa-triangle-exclamation"></i> En caso de emergencia, llama siempre al 112 si hay red. Esta guía es solo orientativa.
-                </div>
-
-                <details>
-                    <summary>RCP: Reanimación Cardiopulmonar</summary>
-                    <img src="rcp.jpg" alt="Guía visual de RCP" class="info-img" loading="lazy">
-                    <p>Verifica respuesta y respiración normal. Si no respira, inicia RCP inmediatamente.</p>
-                    <h4>Adultos</h4>
-                    <ol>
-                        <li>Centro del pecho, entrelaza manos.</li>
-                        <li>Fuerte (5cm) y rápido (100-120 lpm). 30 compresiones.</li>
-                        <li>2 ventilaciones (si estás capacitado). Alterna 30:2.</li>
-                    </ol>
-                    <h4>Pediátrico (Niño >1 año)</h4>
-                    <ol>
-                        <li>Inicia con <strong>5 ventilaciones de rescate</strong>.</li>
-                        <li>Compresiones con <strong>una sola mano</strong> (5cm).</li>
-                        <li>Ritmo 15:2 (2 reanimadores) o 30:2 (solo).</li>
-                    </ol>
-                    <h4>Lactantes (<1 año)</h4>
-                    <ol>
-                        <li>Inicia con <strong>5 ventilaciones</strong> (boca abarca nariz y boca).</li>
-                        <li>Compresiones con <strong>dos dedos</strong> (4cm).</li>
-                        <li>Ritmo 15:2 o 30:2.</li>
-                    </ol>
-                </details>
-
-                <details>
-                    <summary>Atragantamiento (OVACE)</summary>
-                    <p>Si tose, anima a toser. Si no puede respirar:</p>
-                    <h4>Adultos y Niños >1 año</h4>
-                    <ol>
-                        <li>5 golpes secos e inclinados en la espalda (interescapular).</li>
-                        <li>5 compresiones abdominales (Heimlich): Puño sobre ombligo, presiona fuerte hacia adentro y arriba.</li>
-                        <li>Alterna 5 golpes y 5 compresiones.</li>
-                    </ol>
-                    <h4>Lactantes (<1 año)</h4>
-                    <ol>
-                        <li>Bebé boca abajo en antebrazo, sujeta mandíbula.</li>
-                        <li>5 golpes secos en la espalda con talón de la mano.</li>
-                        <li>Gira boca arriba, 5 compresiones torácicas con dos dedos.</li>
-                        <li><strong>Prohibido</strong> presionar abdomen en lactantes.</li>
-                    </ol>
-                </details>
-
-                <details>
-                    <summary>Hemorragias Severas</summary>
-                    <ol>
-                        <li>Presión directa fuerte con trapo limpio/gasas. No levantes la gasa si se empapa, pon otra encima.</li>
-                        <li>Si la presión no para la sangre (arterial a chorros en extremidad), aplica torniquete 5cm por encima de la herida. Anota hora.</li>
-                    </ol>
-                </details>
+            <div id="rcp-lactantes" class="age-panel">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px"><strong>Bebés menores de 1 año</strong></p>
+              <ol class="steps-list">
+                <li><strong>Seguridad</strong> de la escena. Comprueba consciencia <strong>estimulando la planta del pie</strong>.</li>
+                <li><strong>5 ventilaciones de rescate iniciales:</strong> Cubre boca Y nariz del bebé con tu boca. Sopla suavemente (solo el aire de tus mejillas).</li>
+                <li><strong>30 compresiones:</strong> Usa <strong>2 dedos</strong> (índice y corazón) en el centro del pecho, justo debajo de la línea intermamilar. Profundidad: un tercio del tórax (<strong>≈ 4 cm</strong>).</li>
+                <li><strong>2 ventilaciones</strong> suaves tras cada 30 compresiones.</li>
+                <li><strong>Si estás solo:</strong> Realiza <strong>1 minuto de RCP</strong> antes de llamar al 112.</li>
+                <li><strong>Continúa ciclos 30:2</strong> hasta que llegue ayuda profesional.</li>
+              </ol>
             </div>
-        </section>
-    </main>
+          </div>
+        </div>
+      </div>
 
-    <footer>
-        <p>Aviso Legal: Esta página web es de carácter estrictamente informativo y educativo. La información proporcionada no sustituye en ningún caso el asesoramiento médico profesional, la formación en primeros auxilios ni las instrucciones de los servicios de emergencia oficiales (112). El uso de esta plataforma, de sus mapas y de sus guías se realiza bajo la exclusiva responsabilidad y riesgo del usuario. Los creadores declinan toda responsabilidad legal por cualquier daño, lesión o consecuencia derivada del uso, mal uso o interpretación de los contenidos aquí expuestos.</p>
-    </footer>
+      <!-- ATRAGANTAMIENTO -->
+      <div class="accordion-item" id="acc-heimlich">
+        <button class="accordion-header" onclick="toggleAccordion('acc-heimlich')">
+          <span>🫁 Atragantamiento (Maniobra de Heimlich)</span>
+          <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <div class="age-tabs" id="heimlich-tabs">
+              <button class="age-tab active" onclick="switchTab('heimlich','adultos')">🧑 Adultos</button>
+              <button class="age-tab" onclick="switchTab('heimlich','pediatrico')">🧒 Pediátrico</button>
+              <button class="age-tab" onclick="switchTab('heimlich','lactantes')">👶 Lactantes</button>
+            </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <script>
-        // 1. TEMA CLARO/OSCURO
-        const htmlTag = document.documentElement;
-        const themeIcon = document.getElementById('theme-icon');
+            <div id="heimlich-adultos" class="age-panel active">
+              <div class="alert-box alert-info" style="margin-bottom:12px">
+                <span class="alert-icon">💡</span>
+                <div><strong>Si la persona puede toser con fuerza</strong>, anímala a seguir tosiendo. NO intervengas mientras la tos sea efectiva.</div>
+              </div>
+              <p style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:8px">Si NO puede toser, hablar ni respirar:</p>
+              <ol class="steps-list">
+                <li><strong>5 golpes interescapulares:</strong> Inclina a la persona hacia delante. Con el talón de tu mano, da 5 golpes firmes entre los omoplatos.</li>
+                <li><strong>5 compresiones abdominales (Heimlich):</strong> Colócate detrás, rodea su cintura con tus brazos. Puño cerrado entre el ombligo y el esternón. Presiona firme hacia dentro y hacia arriba.</li>
+                <li><strong>Alterna</strong> 5 golpes y 5 compresiones hasta que expulse el objeto o pierda la consciencia.</li>
+                <li><strong>Si pierde la consciencia:</strong> Tiéndela en el suelo e <strong>inicia RCP</strong>. Antes de cada ventilación, revisa la boca por si ves el objeto.</li>
+              </ol>
+            </div>
+            <div id="heimlich-pediatrico" class="age-panel">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px"><strong>Niños de 1 a 8 años</strong></p>
+              <ol class="steps-list">
+                <li><strong>Si tose eficazmente:</strong> Anímale a seguir tosiendo. No intervengas.</li>
+                <li><strong>5 golpes interescapulares:</strong> Arrodíllate o inclínate para estar a su altura. Golpes firmes entre los omoplatos con el talón de la mano.</li>
+                <li><strong>5 compresiones abdominales:</strong> Igual que en adultos pero <strong>con menos fuerza</strong>, adaptada al tamaño del niño.</li>
+                <li><strong>Alterna</strong> 5 golpes y 5 compresiones.</li>
+                <li><strong>Si pierde la consciencia:</strong> Colócalo en el suelo e <strong>inicia RCP pediátrica</strong>.</li>
+              </ol>
+            </div>
+            <div id="heimlich-lactantes" class="age-panel">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px"><strong>Bebés menores de 1 año</strong></p>
+              <div class="alert-box alert-warning" style="margin-bottom:12px">
+                <span class="alert-icon">⚠️</span>
+                <div><strong>NUNCA</strong> realices compresiones abdominales (Heimlich) a un lactante. Puedes causar daño grave en órganos internos.</div>
+              </div>
+              <ol class="steps-list">
+                <li><strong>Boca abajo sobre tu antebrazo:</strong> Sujeta la mandíbula con tus dedos (sin tapar boca). La cabeza más baja que el cuerpo.</li>
+                <li><strong>5 golpes interescapulares:</strong> Con el talón de la mano, da 5 golpes firmes entre los omoplatos.</li>
+                <li><strong>Gira boca arriba:</strong> Apoya al bebé sobre tu otro antebrazo, sujetando la cabeza.</li>
+                <li><strong>5 compresiones torácicas:</strong> Con <strong>2 dedos</strong> en el centro del pecho (debajo de la línea intermamilar). Comprime un tercio del tórax.</li>
+                <li><strong>Alterna</strong> 5 golpes y 5 compresiones torácicas hasta resolver.</li>
+                <li><strong>Si pierde la consciencia:</strong> Inicia <strong>RCP de lactante</strong> inmediatamente.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        function applyTheme(theme) {
-            htmlTag.setAttribute('data-theme', theme);
-            if(themeIcon) {
-                if(theme === 'dark') themeIcon.classList.replace('fa-moon', 'fa-sun');
-                else themeIcon.classList.replace('fa-sun', 'fa-moon');
-            }
+      <!-- HEMORRAGIAS -->
+      <div class="accordion-item" id="acc-hemorragias">
+        <button class="accordion-header" onclick="toggleAccordion('acc-hemorragias')">
+          <span>🩸 Control de Hemorragias</span>
+          <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <ol class="steps-list">
+              <li><strong>Protégete:</strong> Si es posible, usa guantes de un solo uso antes de tocar la herida para evitar contagios.</li>
+              <li><strong>Presión directa:</strong> Coloca un apósito limpio (gasa, tela) directamente sobre la herida y presiona firmemente con tu mano. <strong>No retires el apósito</strong> aunque se empape de sangre.</li>
+              <li><strong>Añade más apósitos:</strong> Si la sangre traspasa, coloca más gasas encima sin retirar las anteriores y sigue presionando.</li>
+              <li><strong>Eleva la extremidad:</strong> Si la herida está en un brazo o pierna, elévala por encima del nivel del corazón mientras mantienes la presión.</li>
+              <li><strong>Vendaje compresivo:</strong> Una vez controlada, aplica un vendaje firme pero que no corte la circulación (debes poder pasar un dedo por debajo).</li>
+              <li><strong>Torniquete (SOLO como ÚLTIMO recurso):</strong> Si la hemorragia es masiva y no cede con presión directa: aplica un torniquete 5-7 cm por encima de la herida. <strong>ANOTA LA HORA</strong> en la frente del paciente o en el torniquete. NO lo aflojes.</li>
+            </ol>
+            <div class="alert-box alert-warning" style="margin-top:14px">
+              <span class="alert-icon">🚑</span>
+              <div><strong>Llama al 112</strong> siempre ante hemorragias graves. Mantén a la víctima abrigada y acostada (posición antishock: piernas elevadas) mientras esperas la ambulancia.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="app-footer">
+        ⚖️ <strong>Aviso Legal:</strong> Esta página web es de carácter estrictamente informativo. No sustituye consejo médico ni instrucciones del 112. Uso bajo responsabilidad del usuario.
+      </footer>
+    </section>
+
+  </main>
+
+  <!-- ===== BOTTOM NAVIGATION ===== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="navigate('inicio')" id="nav-inicio" aria-label="Inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49m11.31-2.82a10 10 0 010 14.14m-14.14 0a10 10 0 010-14.14"/>
+      </svg>
+      <span>Inicio</span>
+    </button>
+    <button class="nav-btn" onclick="navigate('mapa')" id="nav-mapa" aria-label="Mapa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+      </svg>
+      <span>Mapa</span>
+    </button>
+    <button class="nav-btn" onclick="navigate('mochila')" id="nav-mochila" aria-label="Mochila">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="4" y="8" width="16" height="14" rx="2"/><path d="M8 8V5a4 4 0 018 0v3"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+      </svg>
+      <span>Mochila</span>
+    </button>
+    <button class="nav-btn" onclick="navigate('auxilios')" id="nav-auxilios" aria-label="Auxilios">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M9 2h6v6h6v6h-6v6H9v-6H3V8h6z"/>
+      </svg>
+      <span>Auxilios</span>
+    </button>
+  </nav>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    /* ============================================================
+       PLAN 3-3-3 — MAIN APPLICATION SCRIPT
+       ============================================================ */
+
+    // ===== SPA NAVIGATION =====
+    const sections = ['inicio', 'mapa', 'mochila', 'auxilios'];
+    let currentSection = 'inicio';
+    let mapInitialized = false;
+
+    function navigate(target) {
+      if (currentSection === target) return;
+      sections.forEach(s => {
+        document.getElementById('sec-' + s).classList.remove('active');
+        document.getElementById('nav-' + s).classList.remove('active');
+      });
+      document.getElementById('sec-' + target).classList.add('active');
+      document.getElementById('nav-' + target).classList.add('active');
+      currentSection = target;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+      // Lazy-init map when first opening the Map tab
+      if (target === 'mapa' && !mapInitialized) {
+        initMap();
+        mapInitialized = true;
+      } else if (target === 'mapa' && map) {
+        setTimeout(() => map.invalidateSize(), 100);
+      }
+    }
+
+    // ===== DARK / LIGHT MODE =====
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.contains('dark');
+      if (isDark) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        localStorage.setItem('plan333-theme', 'light');
+        document.getElementById('meta-theme').setAttribute('content', '#ffffff');
+      } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        localStorage.setItem('plan333-theme', 'dark');
+        document.getElementById('meta-theme').setAttribute('content', '#0d1117');
+      }
+      // Update map tiles filter (already handled by CSS)
+      if (map) map.invalidateSize();
+    }
+
+    // ===== PWA INSTALL =====
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      document.getElementById('btn-install').classList.add('show');
+    });
+
+    function installApp() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(choice => {
+        if (choice.outcome === 'accepted') {
+          document.getElementById('btn-install').classList.remove('show');
         }
+        deferredInstallPrompt = null;
+      });
+    }
 
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        applyTheme(savedTheme);
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('btn-install').classList.remove('show');
+      deferredInstallPrompt = null;
+    });
 
-        function toggleTheme() {
-            const newTheme = htmlTag.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
+    // ===== OFFLINE DETECTION =====
+    function updateOnlineStatus() {
+      const banner = document.getElementById('offline-banner');
+      if (!navigator.onLine) {
+        banner.classList.add('visible');
+      } else {
+        banner.classList.remove('visible');
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // ===== SCHEDULE TABLE =====
+    function buildScheduleTable() {
+      const utcHours = [0, 3, 6, 9, 12, 15, 18, 21];
+      const tbody = document.getElementById('schedule-body');
+      const now = new Date();
+      const offsetMin = now.getTimezoneOffset();
+      let nextTxIndex = -1;
+
+      const rows = utcHours.map((utcH, i) => {
+        const localH = ((utcH * 60 - offsetMin) / 60 + 24) % 24;
+        const localHFloor = Math.floor(localH);
+        const localMin = Math.round((localH - localHFloor) * 60);
+        const localStr = String(localHFloor).padStart(2, '0') + ':' + String(localMin).padStart(2, '0');
+        const utcStr = String(utcH).padStart(2, '0') + ':00';
+        return { localStr, utcStr, localH: localHFloor, localMin, utcH, index: i };
+      });
+
+      // Sort by local time for display
+      rows.sort((a, b) => (a.localH * 60 + a.localMin) - (b.localH * 60 + b.localMin));
+
+      // Find next transmission
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      for (let i = 0; i < rows.length; i++) {
+        const rowMin = rows[i].localH * 60 + rows[i].localMin;
+        if (rowMin > nowMinutes) {
+          nextTxIndex = i;
+          break;
         }
+      }
+      if (nextTxIndex === -1) nextTxIndex = 0; // wrap to first slot tomorrow
 
-        // 2. NAVEGACIÓN SPA (Single Page Application)
-        function openTab(tabId) {
-            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-            if (tabId === 'mapa' && map) setTimeout(() => { map.invalidateSize(); }, 100);
-        }
+      tbody.innerHTML = '';
+      rows.forEach((r, i) => {
+        const tr = document.createElement('tr');
+        if (i === nextTxIndex) tr.classList.add('next-tx');
+        tr.innerHTML = `
+          <td>${r.localStr}</td>
+          <td>${r.utcStr} UTC</td>
+          <td>RX / TX</td>
+          <td>3 minutos</td>
+        `;
+        tbody.appendChild(tr);
+      });
 
-        // 3. PWA INSTALACIÓN
-        let deferredPrompt;
-        const installBtn = document.getElementById('install-btn');
+      // Next TX info
+      const next = rows[nextTxIndex];
+      const nextInfo = document.getElementById('next-tx-info');
+      const nextMin = next.localH * 60 + next.localMin;
+      let diffMin = nextMin - nowMinutes;
+      if (diffMin <= 0) diffMin += 24 * 60;
+      const diffH = Math.floor(diffMin / 60);
+      const diffM = diffMin % 60;
+      nextInfo.innerHTML = `⏱ Próxima transmisión en <strong>${diffH}h ${diffM}min</strong> (${next.localStr} hora local)`;
+    }
+    buildScheduleTable();
+    setInterval(buildScheduleTable, 60000); // Update every minute
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.style.display = 'block';
+    // ===== MAP (LEAFLET) =====
+    let map = null;
+    let userLat = null, userLon = null;
+    let markersLayer = null;
+    let circleLayer = null;
+    let userMarker = null;
+
+    function initMap() {
+      map = L.map('map').setView([40.4168, -3.7038], 13); // Default: Madrid
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+      }).addTo(map);
+      markersLayer = L.layerGroup().addTo(map);
+    }
+
+    function useMyLocation() {
+      if (!navigator.geolocation) {
+        alert('Tu navegador no soporta geolocalización.');
+        return;
+      }
+      showMapLoading('Obteniendo tu ubicación...');
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          setMapLocation(pos.coords.latitude, pos.coords.longitude);
+        },
+        err => {
+          hideMapLoading();
+          alert('No se pudo obtener tu ubicación. Error: ' + err.message);
+        },
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    }
+
+    function searchAddress() {
+      const query = document.getElementById('search-input').value.trim();
+      if (!query) return;
+      showMapLoading('Buscando dirección...');
+      fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1', {
+        headers: { 'Accept-Language': 'es' }
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Error en la búsqueda: ' + res.status);
+          return res.json();
+        })
+        .then(data => {
+          if (!data || data.length === 0) {
+            hideMapLoading();
+            alert('No se encontró la dirección. Intenta con otra búsqueda.');
+            return;
+          }
+          setMapLocation(parseFloat(data[0].lat), parseFloat(data[0].lon));
+        })
+        .catch(err => {
+          hideMapLoading();
+          alert('Error al buscar: ' + err.message);
         });
+    }
 
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installBtn.style.display = 'none';
-                    deferredPrompt = null;
-                }
-            }
-        });
+    function setMapLocation(lat, lon) {
+      if (!map) { initMap(); mapInitialized = true; }
+      userLat = lat;
+      userLon = lon;
+      map.setView([lat, lon], 15);
 
-        // 4. ESTADO OFFLINE
-        const offlineWarning = document.getElementById('offline-warning');
-        function updateOnlineStatus() {
-            offlineWarning.style.display = navigator.onLine ? 'none' : 'block';
-        }
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
+      // Clear previous
+      markersLayer.clearLayers();
+      if (circleLayer) map.removeLayer(circleLayer);
+      if (userMarker) map.removeLayer(userMarker);
 
-        // 5. REGISTRO SERVICE WORKER
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW error:', err));
+      // User marker
+      userMarker = L.marker([lat, lon], {
+        icon: L.divIcon({
+          html: '<div class="custom-marker-icon" style="background:#3b82f6">📍</div>',
+          className: '', iconSize: [34, 34], iconAnchor: [17, 17]
+        })
+      }).addTo(map).bindPopup('<strong>Tu ubicación</strong>');
+
+      // 1.5km circle
+      circleLayer = L.circle([lat, lon], {
+        radius: 1500,
+        color: '#dc2626',
+        fillColor: '#dc2626',
+        fillOpacity: 0.07,
+        weight: 2,
+        dashArray: '8, 6'
+      }).addTo(map);
+
+      map.fitBounds(circleLayer.getBounds(), { padding: [20, 20] });
+
+      // Query POIs
+      searchPOIs(lat, lon);
+    }
+
+    function searchPOIs(lat, lon) {
+      showMapLoading('Buscando recursos de emergencia...');
+      const query = `
+        [out:json][timeout:25];
+        (
+          nwr["amenity"="hospital"](around:1500,${lat},${lon});
+          nwr["amenity"="clinic"](around:1500,${lat},${lon});
+          nwr["amenity"="police"](around:1500,${lat},${lon});
+          nwr["amenity"="fire_station"](around:1500,${lat},${lon});
+          nwr["amenity"="library"](around:1500,${lat},${lon});
+          nwr["amenity"="community_centre"](around:1500,${lat},${lon});
+          nwr["emergency"="rescue_base"](around:1500,${lat},${lon});
+        );
+        out center;
+      `;
+
+      fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: 'data=' + encodeURIComponent(query),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(res.status === 504 ? 'Servidor Overpass sobrecargado (504). Intenta de nuevo en unos segundos.' : 'Error del servidor: ' + res.status);
+          }
+          return res.json();
+        })
+        .then(data => {
+          hideMapLoading();
+          const elements = data.elements || [];
+          let count = 0;
+
+          elements.forEach(el => {
+            const elLat = el.lat || (el.center && el.center.lat);
+            const elLon = el.lon || (el.center && el.center.lon);
+            if (!elLat || !elLon) return;
+
+            const info = getPOIInfo(el.tags);
+            if (!info) return;
+
+            const name = el.tags.name || info.label;
+            const marker = L.marker([elLat, elLon], {
+              icon: L.divIcon({
+                html: `<div class="custom-marker-icon" style="background:${info.color}">${info.emoji}</div>`,
+                className: '', iconSize: [34, 34], iconAnchor: [17, 17]
+              })
             });
-        }
 
-        // 6. CHECKLIST LOCALSTORAGE
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(chk => {
-            if(localStorage.getItem(chk.id) === 'true') chk.checked = true;
-            chk.addEventListener('change', function() { localStorage.setItem(this.id, this.checked); });
+            const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lon}&destination=${elLat},${elLon}&travelmode=walking`;
+            marker.bindPopup(`
+              <div class="popup-content">
+                <div class="popup-title">${name}</div>
+                <div class="popup-type">${info.label}</div>
+                <a class="popup-btn" href="${directionsUrl}" target="_blank" rel="noopener noreferrer">
+                  🚶 Cómo llegar a pie
+                </a>
+              </div>
+            `);
+            markersLayer.addLayer(marker);
+            count++;
+          });
+
+          document.getElementById('map-legend').style.display = 'flex';
+          document.getElementById('map-results').textContent = count > 0
+            ? `✅ ${count} recurso${count !== 1 ? 's' : ''} encontrado${count !== 1 ? 's' : ''} en 1.5 km`
+            : '⚠️ No se encontraron recursos en esta zona.';
+        })
+        .catch(err => {
+          hideMapLoading();
+          document.getElementById('map-results').textContent = '❌ ' + err.message;
+          console.error('Overpass error:', err);
         });
+    }
 
-        // 7. LÓGICA DEL MAPA
-        let map;
-        let mapInitialized = false;
-        let currentLat = null;
-        let currentLon = null;
+    function getPOIInfo(tags) {
+      if (!tags) return null;
+      if (tags.amenity === 'hospital') return { label: 'Hospital', emoji: '🏥', color: '#e74c3c' };
+      if (tags.amenity === 'clinic') return { label: 'Clínica', emoji: '🏥', color: '#e74c3c' };
+      if (tags.amenity === 'police') return { label: 'Policía', emoji: '👮', color: '#3498db' };
+      if (tags.amenity === 'fire_station') return { label: 'Bomberos', emoji: '🚒', color: '#e67e22' };
+      if (tags.amenity === 'library') return { label: 'Biblioteca', emoji: '📚', color: '#9b59b6' };
+      if (tags.amenity === 'community_centre') return { label: 'Centro Cívico', emoji: '🏛️', color: '#1abc9c' };
+      if (tags.emergency === 'rescue_base') return { label: 'Protección Civil / Cruz Roja', emoji: '⛑️', color: '#2ecc71' };
+      return null;
+    }
 
-        function handleEnter(e) { if (e.key === 'Enter') searchAddress(); }
+    function showMapLoading(text) {
+      document.getElementById('map-loading-text').textContent = text || 'Cargando...';
+      document.getElementById('map-loading').classList.add('show');
+    }
+    function hideMapLoading() {
+      document.getElementById('map-loading').classList.remove('show');
+    }
 
-        function searchAddress() {
-            if (!navigator.onLine) { alert("Requiere conexión a internet."); return; }
-            const address = document.getElementById('address-input').value.trim();
-            const statusDiv = document.getElementById('map-status');
+    // ===== CHECKLIST =====
+    const checklistData = [
+      {
+        category: '💧 Agua y Alimentación',
+        items: [
+          { id: 'agua', label: 'Agua potable (3L/persona/día = 9L para 72h)' },
+          { id: 'comida', label: 'Comida no perecedera (latas, barritas, frutos secos)' },
+          { id: 'abridor', label: 'Abridor de latas manual' },
+          { id: 'pastillas', label: 'Pastillas potabilizadoras de agua' },
+        ]
+      },
+      {
+        category: '📡 Iluminación y Comunicaciones',
+        items: [
+          { id: 'linterna', label: 'Linterna LED + pilas de repuesto' },
+          { id: 'radio', label: 'Radio AM/FM (a pilas o dinamo)' },
+          { id: 'walkie', label: 'Walkie-talkie PMR-446 (Canal 3)' },
+          { id: 'silbato', label: 'Silbato de emergencia' },
+          { id: 'powerbank', label: 'Cargador portátil (powerbank) + cable USB' },
+        ]
+      },
+      {
+        category: '📄 Documentación',
+        items: [
+          { id: 'dni', label: 'DNI / Pasaporte (fotocopias plastificadas)' },
+          { id: 'seguros', label: 'Pólizas de seguro (copias)' },
+          { id: 'telefonos', label: 'Listado de teléfonos de emergencia impresos' },
+          { id: 'dinero', label: 'Dinero en efectivo (billetes pequeños y monedas)' },
+        ]
+      },
+      {
+        category: '🩺 Salud e Higiene',
+        items: [
+          { id: 'botiquin', label: 'Botiquín de primeros auxilios completo' },
+          { id: 'medicamentos', label: 'Medicamentos personales (suministro 7 días)' },
+          { id: 'mascarillas', label: 'Mascarillas FFP2' },
+          { id: 'gel', label: 'Gel hidroalcohólico desinfectante' },
+          { id: 'higiene', label: 'Kit de higiene (cepillo, pasta, toallitas húmedas)' },
+          { id: 'papel', label: 'Papel higiénico' },
+        ]
+      },
+      {
+        category: '🧥 Protección y Refugio',
+        items: [
+          { id: 'manta', label: 'Manta térmica de emergencia (x2)' },
+          { id: 'ropa', label: 'Ropa de abrigo impermeable' },
+          { id: 'guantes', label: 'Guantes de trabajo resistentes' },
+          { id: 'chubasquero', label: 'Chubasquero / poncho de lluvia' },
+        ]
+      },
+      {
+        category: '🔧 Herramientas',
+        items: [
+          { id: 'navaja', label: 'Cuchillo multiusos / navaja suiza' },
+          { id: 'cinta', label: 'Cinta americana (duct tape)' },
+          { id: 'fuego', label: 'Encendedor + cerillas impermeables' },
+          { id: 'bolsas', label: 'Bolsas de basura grandes resistentes (x5)' },
+          { id: 'cuerda', label: 'Cuerda resistente (10 metros mínimo)' },
+          { id: 'plastico', label: 'Plástico / lona multiusos (2x3 m)' },
+        ]
+      },
+    ];
 
-            if (!address) { alert("Escribe una dirección."); return; }
+    function buildChecklist() {
+      const container = document.getElementById('checklist-container');
+      const saved = JSON.parse(localStorage.getItem('plan333-checklist') || '{}');
+      let html = '';
 
-            statusDiv.style.display = 'block';
-            statusDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Geocodificando...';
-            
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`)
-                .then(res => { if(!res.ok) throw new Error("API Nominatim"); return res.json(); })
-                .then(data => {
-                    if (data.length === 0) { statusDiv.innerHTML = "Dirección no encontrada."; return; }
+      checklistData.forEach(cat => {
+        html += `<div class="check-category"><div class="check-category-title">${cat.category}</div>`;
+        cat.items.forEach(item => {
+          const checked = saved[item.id] === true;
+          html += `
+            <label class="check-item ${checked ? 'checked' : ''}" id="check-${item.id}" onclick="toggleCheck('${item.id}')">
+              <input type="checkbox" ${checked ? 'checked' : ''}>
+              <div class="check-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <span class="check-label">${item.label}</span>
+            </label>
+          `;
+        });
+        html += '</div>';
+      });
+      container.innerHTML = html;
+      updateProgress();
+    }
 
-                    currentLat = parseFloat(data[0].lat);
-                    currentLon = parseFloat(data[0].lon);
-                    
-                    document.getElementById('map').style.display = 'block';
-                    if (!mapInitialized) {
-                        map = L.map('map').setView([currentLat, currentLon], 14);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-                        mapInitialized = true;
-                    } else {
-                        map.setView([currentLat, currentLon], 14);
-                        map.eachLayer((layer) => { if (layer instanceof L.Marker || layer instanceof L.Circle) map.removeLayer(layer); });
-                    }
+    function toggleCheck(id) {
+      const saved = JSON.parse(localStorage.getItem('plan333-checklist') || '{}');
+      saved[id] = !saved[id];
+      localStorage.setItem('plan333-checklist', JSON.stringify(saved));
 
-                    L.marker([currentLat, currentLon]).addTo(map).bindPopup(`<b>Origen</b>`).openPopup();
-                    L.circle([currentLat, currentLon], { color: 'blue', fillColor: '#30f', fillOpacity: 0.1, radius: 1500 }).addTo(map);
+      const el = document.getElementById('check-' + id);
+      const input = el.querySelector('input');
+      if (saved[id]) {
+        el.classList.add('checked');
+        input.checked = true;
+      } else {
+        el.classList.remove('checked');
+        input.checked = false;
+      }
+      updateProgress();
+    }
 
-                    fetchOverpassData(currentLat, currentLon, statusDiv);
-                })
-                .catch(err => { statusDiv.innerHTML = "Error al buscar."; });
-        }
+    function updateProgress() {
+      const saved = JSON.parse(localStorage.getItem('plan333-checklist') || '{}');
+      let total = 0, done = 0;
+      checklistData.forEach(cat => {
+        cat.items.forEach(item => {
+          total++;
+          if (saved[item.id]) done++;
+        });
+      });
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      document.getElementById('progress-bar').style.width = pct + '%';
+      document.getElementById('progress-pct').textContent = pct + '%';
+      document.getElementById('progress-count').textContent = done;
+      document.getElementById('progress-total').textContent = total;
+    }
 
-        function fetchOverpassData(lat, lon, statusDiv) {
-            statusDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando recursos públicos...';
-            
-            const overpassQuery = `
-                [out:json][timeout:20];
-                (
-                  node["amenity"~"hospital|clinic|police|fire_station|library|community_centre"](around:1500,${lat},${lon});
-                  way["amenity"~"hospital|clinic|police|fire_station|library|community_centre"](around:1500,${lat},${lon});
-                  node["emergency"="rescue_base"](around:1500,${lat},${lon});
-                  way["emergency"="rescue_base"](around:1500,${lat},${lon});
-                );
-                out center;
-            `;
+    function clearChecklist() {
+      if (!confirm('¿Seguro que quieres reiniciar toda la lista?')) return;
+      localStorage.removeItem('plan333-checklist');
+      buildChecklist();
+    }
 
-            fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`)
-                .then(res => { if (!res.ok) throw new Error("504"); return res.json(); })
-                .then(data => {
-                    statusDiv.style.display = 'none';
-                    if (data.elements.length === 0) { alert("No hay recursos en 1.5km."); return; }
+    // Build checklist on load
+    buildChecklist();
 
-                    data.elements.forEach(el => {
-                        const tags = el.tags; const amenity = tags.amenity || ""; const emergency = tags.emergency || ""; 
-                        let name = tags.name || "Sin nombre"; let iconColor = "gray"; let iconType = "fa-building"; let typeDesc = "Recurso";
-                        
-                        if (amenity.includes("hospital") || amenity.includes("clinic")) { iconColor = "red"; iconType = "fa-truck-medical"; typeDesc = "Sanitario"; }
-                        else if (amenity.includes("police")) { iconColor = "blue"; iconType = "fa-shield-halved"; typeDesc = "Policía"; }
-                        else if (amenity.includes("fire_station")) { iconColor = "orange"; iconType = "fa-fire-extinguisher"; typeDesc = "Bomberos"; }
-                        else if (amenity.includes("library")) { iconColor = "purple"; iconType = "fa-book"; typeDesc = "Biblioteca"; }
-                        else if (amenity.includes("community_centre")) { iconColor = "green"; iconType = "fa-people-group"; typeDesc = "Centro Cívico"; }
-                        else if (emergency === "rescue_base") { iconColor = "darkred"; iconType = "fa-life-ring"; typeDesc = "Prot. Civil / Cruz Roja"; }
+    // ===== ACCORDION =====
+    function toggleAccordion(id) {
+      const item = document.getElementById(id);
+      item.classList.toggle('open');
+    }
 
-                        const eLat = el.lat || el.center.lat; const eLon = el.lon || el.center.lon;
-                        const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=$${lat},${lon}&destination=${eLat},${eLon}`;
+    // ===== TABS (inside accordion) =====
+    function switchTab(group, tabName) {
+      // Deactivate all tabs and panels in this group
+      const tabsContainer = document.getElementById(group + '-tabs');
+      tabsContainer.querySelectorAll('.age-tab').forEach(t => t.classList.remove('active'));
+      // Find the parent accordion body
+      const parent = tabsContainer.closest('.accordion-body');
+      parent.querySelectorAll('.age-panel').forEach(p => p.classList.remove('active'));
 
-                        L.marker([eLat, eLon]).addTo(map).bindPopup(`
-                            <div style="text-align:center;">
-                                <b><i class="fa-solid ${iconType}" style="color:${iconColor}"></i> ${name}</b><br>
-                                <span style="font-size:0.85rem; color:#666;">${typeDesc}</span><br>
-                                <a href="${routeUrl}" target="_blank" class="route-btn"><i class="fa-solid fa-route"></i> Ruta a pie</a>
-                            </div>
-                        `);
-                    });
-                })
-                .catch(err => {
-                    statusDiv.innerHTML = '<span class="error-message">Servidor saturado. Reintenta en breve.</span>';
-                });
-        }
-    </script>
+      // Activate selected
+      const panelId = group + '-' + tabName;
+      document.getElementById(panelId).classList.add('active');
+      // Activate correct tab button
+      event.currentTarget.classList.add('active');
+    }
+
+    // ===== SERVICE WORKER REGISTRATION =====
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>

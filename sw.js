@@ -1,11 +1,12 @@
-const CACHE_NAME = 'plan333-secure-v3';
+const CACHE_NAME = 'plan333-secure-v4';
 
-// Incluimos explícitamente los recursos críticos para que funcionen offline
+// Incluimos explícitamente los recursos críticos (incluyendo plan333.jpg)
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './rcp.jpg',
+  './plan333.jpg',
   './icon-192.png',
   './icon-512.png',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',

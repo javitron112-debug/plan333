@@ -1,452 +1,870 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Emergencias | Plan 3-3-3</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Panel central para el protocolo de radio Plan 3-3-3 y recursos críticos de emergencia">
+  <meta name="theme-color" content="#1e3a5f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Coordinación de Emergencias - Plan 3-3-3</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231e3a5f' width='100' height='100' rx='15'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>🚨</text></svg>">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <style>
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --accent: #1e3a5f;
+      --accent-light: #3b82f6;
+      --border: #e2e8f0;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
     
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#dc3545">
-    <link rel="apple-touch-icon" href="icon.png">
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-    <style>
-        :root {
-            --bg-color: #f8f9fa;
-            --text-color: #212529;
-            --nav-bg: #343a40;
-            --nav-text: #ffffff;
-            --accent-color: #dc3545;
-            --card-bg: #ffffff;
-            --border-color: #dee2e6;
-            --input-bg: #ffffff;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --text-color: #e0e0e0;
-            --nav-bg: #1f1f1f;
-            --nav-text: #ffffff;
-            --accent-color: #ff4d4d;
-            --card-bg: #1e1e1e;
-            --border-color: #333333;
-            --input-bg: #2d2d2d;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-
-        body { background-color: var(--bg-color); color: var(--text-color); transition: background 0.3s, color 0.3s; display: flex; flex-direction: column; min-height: 100vh; }
-
-        nav { background-color: var(--nav-bg); color: var(--nav-text); padding: 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .nav-brand { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        .nav-brand i { color: var(--accent-color); }
-        .nav-links { display: flex; gap: 15px; }
-        .nav-links button { background: none; border: none; color: var(--nav-text); font-size: 1rem; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: background 0.2s; }
-        .nav-links button:hover, .nav-links button.active { background-color: rgba(255,255,255,0.2); }
-        .theme-toggle { background: none; border: none; color: var(--nav-text); font-size: 1.2rem; cursor: pointer; }
-
-        main { max-width: 1200px; margin: 20px auto; padding: 0 20px; flex: 1; }
-        .section { display: none; animation: fadeIn 0.5s; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        
-        h1, h2, h3 { margin-bottom: 15px; color: var(--accent-color); }
-        p { line-height: 1.6; margin-bottom: 15px; }
-
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background-color: rgba(220, 53, 69, 0.1); color: var(--accent-color); }
-
-        .search-container { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .search-container input { flex: 1; min-width: 250px; padding: 12px; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--input-bg); color: var(--text-color); font-size: 1rem; }
-        .search-container button { padding: 12px 24px; background-color: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: opacity 0.2s; }
-        .search-container button:hover { opacity: 0.9; }
-
-        #map { height: 60vh; width: 100%; border-radius: 8px; z-index: 1; border: 1px solid var(--border-color); }
-        .map-status { text-align: center; padding: 20px; font-weight: bold; }
-        .offline-warning { display: none; background-color: #ffc107; color: #000; padding: 10px; text-align: center; font-weight: bold; margin-bottom: 20px; border-radius: 4px; }
-
-        /* Estilo para el botón de ruta en el popup de Leaflet */
-        .route-btn { display: inline-block; margin-top: 10px; padding: 8px 12px; background-color: #007bff; color: #fff !important; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.9rem; text-align: center; width: 100%; transition: background 0.2s; }
-        .route-btn:hover { background-color: #0056b3; }
-
-        .checklist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .check-item { display: flex; align-items: center; margin-bottom: 10px; padding: 8px; border-radius: 4px; transition: background 0.2s; }
-        .check-item:hover { background-color: rgba(0,0,0,0.05); }
-        [data-theme="dark"] .check-item:hover { background-color: rgba(255,255,255,0.05); }
-        .check-item input[type="checkbox"] { width: 20px; height: 20px; margin-right: 15px; cursor: pointer; accent-color: var(--accent-color); }
-        .check-item label { cursor: pointer; flex-grow: 1; user-select: none; }
-        .check-item input:checked + label { text-decoration: line-through; opacity: 0.6; }
-
-        details { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px; padding: 10px 20px; }
-        summary { font-weight: bold; font-size: 1.1rem; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
-        summary::-webkit-details-marker { display: none; }
-        summary::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; transition: transform 0.3s; }
-        details[open] summary::after { transform: rotate(180deg); }
-        details p, details ul, details ol { margin-top: 10px; padding-bottom: 10px; line-height: 1.6; }
-        details ul, details ol { padding-left: 20px; }
-
-        footer { background-color: var(--nav-bg); color: #aaa; text-align: justify; padding: 20px; font-size: 0.85rem; border-top: 3px solid var(--accent-color); }
-        
-        @media (max-width: 768px) {
-            nav { flex-direction: column; gap: 15px; }
-            .nav-links { flex-wrap: wrap; justify-content: center; }
-        }
-    </style>
+    .dark {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --border: #475569;
+    }
+    
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    
+    .bg-primary { background-color: var(--bg-primary); }
+    .bg-secondary { background-color: var(--bg-secondary); }
+    .bg-tertiary { background-color: var(--bg-tertiary); }
+    .text-primary { color: var(--text-primary); }
+    .text-secondary { color: var(--text-secondary); }
+    .border-custom { border-color: var(--border); }
+    .accent-bg { background-color: var(--accent); }
+    .accent-text { color: var(--accent); }
+    
+    .page { display: none; }
+    .page.active { display: block; }
+    
+    .nav-link {
+      transition: all 0.2s;
+    }
+    .nav-link.active {
+      background-color: var(--accent);
+      color: white;
+    }
+    
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .accordion-content.open {
+      max-height: 1000px;
+    }
+    
+    #map { height: 400px; width: 100%; border-radius: 0.5rem; }
+    
+    .checklist-item input:checked + label {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+    
+    .hamburger span {
+      display: block;
+      width: 25px;
+      height: 3px;
+      background-color: var(--text-primary);
+      margin: 5px 0;
+      transition: 0.3s;
+    }
+    
+    @media (max-width: 768px) {
+      .mobile-menu {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+      }
+      .mobile-menu.open {
+        transform: translateX(0);
+      }
+    }
+  </style>
 </head>
-<body>
-
-    <nav>
-        <div class="nav-brand">
-            <i class="fa-solid fa-tower-broadcast"></i> INFO-EMERGENCIA
+<body class="min-h-screen">
+  <!-- Header -->
+  <header class="bg-secondary shadow-lg sticky top-0 z-50 border-b border-custom">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">🚨</span>
+          <div>
+            <h1 class="text-lg font-bold accent-text">Plan 3-3-3</h1>
+            <p class="text-xs text-secondary">Coordinación de Emergencias</p>
+          </div>
         </div>
-        <div class="nav-links">
-            <button class="tab-btn active" onclick="openTab('inicio')"><i class="fa-solid fa-house"></i> Plan 333</button>
-            <button class="tab-btn" onclick="openTab('mapa')"><i class="fa-solid fa-map-location-dot"></i> Mapa 1.5km</button>
-            <button class="tab-btn" onclick="openTab('mochila')"><i class="fa-solid fa-backpack"></i> Mochila 72h</button>
-            <button class="tab-btn" onclick="openTab('auxilios')"><i class="fa-solid fa-briefcase-medical"></i> 1º Auxilios</button>
+        
+        <!-- Desktop Navigation -->
+        <nav class="hidden md:flex items-center gap-2">
+          <button onclick="showPage('inicio')" class="nav-link px-4 py-2 rounded-lg text-sm font-medium active" data-page="inicio">🏠 Inicio</button>
+          <button onclick="showPage('mapa')" class="nav-link px-4 py-2 rounded-lg text-sm font-medium" data-page="mapa">🗺️ Mapa</button>
+          <button onclick="showPage('mochila')" class="nav-link px-4 py-2 rounded-lg text-sm font-medium" data-page="mochila">🎒 Mochila</button>
+          <button onclick="showPage('primeros-auxilios')" class="nav-link px-4 py-2 rounded-lg text-sm font-medium" data-page="primeros-auxilios">🏥 Primeros Auxilios</button>
+        </nav>
+        
+        <div class="flex items-center gap-3">
+          <!-- Theme Toggle -->
+          <button id="theme-toggle" onclick="toggleTheme()" class="p-2 rounded-lg bg-tertiary hover:opacity-80 transition" title="Cambiar tema">
+            <span id="theme-icon">🌙</span>
+          </button>
+          
+          <!-- Mobile Menu Button -->
+          <button id="menu-btn" class="md:hidden hamburger" onclick="toggleMobileMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
-        <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar Tema">
-            <i class="fa-solid fa-moon" id="theme-icon"></i>
-        </button>
-    </nav>
-
-    <main>
-        <div id="offline-warning" class="offline-warning">
-            <i class="fa-solid fa-wifi-slash"></i> Estás sin conexión a internet. El mapa no funcionará, pero puedes consultar las frecuencias, la guía y tu mochila.
-        </div>
-
-        <section id="inicio" class="section active">
-            <div class="card">
-                <h2>El Plan 3-3-3 de Comunicaciones</h2>
-                <p>El Plan 3-3-3 es un protocolo civil de supervivencia energética para mantener contacto radial cuando colapsan las redes de telefonía e internet.</p>
-                
-                <div style="background-color: rgba(220, 53, 69, 0.1); padding: 15px; border-left: 4px solid var(--accent-color); margin-bottom: 15px;">
-                    <h3><i class="fa-solid fa-walkie-talkie"></i> Frecuencias del Canal 3</h3>
-                    <ul>
-                        <li><strong>Equipos sin licencia (PMR-446):</strong> Frecuencia <strong>446.03125 MHz</strong> (FM). <em>Asegúrate de que no hay subtonos (CTCSS/DCS) activados.</em></li>
-                        <li><strong>Banda Ciudadana (CB-27):</strong> Frecuencia <strong>26.985 MHz</strong> (AM/FM).</li>
-                    </ul>
-                </div>
-
-                <h3>Horarios de Escucha (Hora Local)</h3>
-                <p>Enciende el equipo cada 3 horas, durante solo 3 minutos, en los siguientes horarios:</p>
-                <table>
-                    <tr><th>Hora</th><th>Acción Principal</th></tr>
-                    <tr><td>00:00</td><td>Encender, escuchar, transmitir si hay emergencia.</td></tr>
-                    <tr><td>03:00</td><td>Encender, escuchar, transmitir si hay emergencia.</td></tr>
-                    <tr><td>06:00</td><td>Encender, escuchar, transmitir si hay emergencia.</td></tr>
-                    <tr><td>09:00</td><td>Encender, escuchar, transmitir si hay emergencia.</td></tr>
-                    <tr><td>12:00</td><td>Encender, escuchar, transmitir si hay emergencia.</td></tr>
-                    <tr><td>15:00</td><td>Encender, escuchar, transmitir si hay emergencia.</td></tr>
-                    <tr><td>18:00</td><td>Encender, escuchar, transmitir si hay emergencia.</td></tr>
-                    <tr><td>21:00</td><td>Encender, escuchar, transmitir si hay emergencia.</td></tr>
-                </table>
-                <p><em>Regla de los 3 minutos: Minuto 1 (Solo escucha) / Minuto 2 (Emergencias vitales) / Minuto 3 (Información y coordinación general).</em></p>
-            </div>
-        </section>
-
-        <section id="mapa" class="section">
-            <div class="card">
-                <h2>Recursos Públicos Cercanos (Radio 1.5km)</h2>
-                <p>Introduce tu dirección o código postal para localizar hospitales, policía, bomberos, bibliotecas, centros cívicos y bases de rescate.</p>
-                
-                <div class="search-container">
-                    <input type="text" id="address-input" placeholder="Ej: Calle Mayor 1, 28921 Alcorcón" onkeypress="handleEnter(event)">
-                    <button onclick="searchAddress()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
-                </div>
-
-                <div id="map-status" class="map-status">Esperando dirección...</div>
-                <div id="map" style="display: none;"></div>
-            </div>
-        </section>
-
-        <section id="mochila" class="section">
-            <div class="card">
-                <h2>Mochila de Emergencia (72 Horas)</h2>
-                <p>Marca los elementos que ya tienes preparados. Tu progreso se guarda automáticamente.</p>
-                
-                <div class="checklist-grid">
-                    <div>
-                        <h3><i class="fa-solid fa-bottle-water"></i> Agua y Comida</h3>
-                        <div class="check-item"><input type="checkbox" id="chk-agua"><label for="chk-agua">Agua (3 litros por persona/día)</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-filtro"><label for="chk-filtro">Filtro de agua o pastillas</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-comida"><label for="chk-comida">Comida no perecedera</label></div>
-                    </div>
-                    <div>
-                        <h3><i class="fa-solid fa-kit-medical"></i> Salud e Higiene</h3>
-                        <div class="check-item"><input type="checkbox" id="chk-botiquin"><label for="chk-botiquin">Botiquín de primeros auxilios</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-meds"><label for="chk-meds">Medicamentos crónicos</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-papel"><label for="chk-papel">Papel higiénico y toallitas</label></div>
-                    </div>
-                    <div>
-                        <h3><i class="fa-solid fa-battery-full"></i> Energía y Comunicación</h3>
-                        <div class="check-item"><input type="checkbox" id="chk-radio"><label for="chk-radio">Radio PMR446 / AM-FM</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-linterna"><label for="chk-linterna">Linterna y pilas</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-powerbank"><label for="chk-powerbank">Batería externa cargada</label></div>
-                    </div>
-                    <div>
-                        <h3><i class="fa-solid fa-toolbox"></i> Herramientas</h3>
-                        <div class="check-item"><input type="checkbox" id="chk-navaja"><label for="chk-navaja">Navaja multiusos</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-manta"><label for="chk-manta">Manta térmica</label></div>
-                        <div class="check-item"><input type="checkbox" id="chk-fuego"><label for="chk-fuego">Mecheros o pedernal</label></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="auxilios" class="section">
-            <div class="card">
-                <h2>Guía de Primeros Auxilios Básicos</h2>
-                
-                <details>
-                    <summary>Reanimación Cardiopulmonar (RCP)</summary>
-                    <ol>
-                        <li>Verifica si la persona responde y respira con normalidad.</li>
-                        <li>Si no responde ni respira, llama al 112 (si hay red) y pide un desfibrilador (DEA).</li>
-                        <li>Coloca el talón de una mano en el centro del pecho, entrelaza la otra mano encima.</li>
-                        <li>Comprime fuerte y rápido: hunde el pecho unos 5 cm a un ritmo de 100-120 compresiones por minuto.</li>
-                    </ol>
-                </details>
-
-                <details>
-                    <summary>Atragantamiento (Maniobra de Heimlich)</summary>
-                    <p><strong>Si la persona tose fuertemente:</strong> Anímala a seguir tosiendo.</p>
-                    <p><strong>Si no puede toser ni respirar:</strong></p>
-                    <ol>
-                        <li>Párate detrás de la persona y abrázala por la cintura.</li>
-                        <li>Cierra una mano en puño y coloca el lado del pulgar justo por encima de su ombligo.</li>
-                        <li>Agarra el puño con tu otra mano.</li>
-                        <li>Da compresiones rápidas hacia adentro y hacia arriba.</li>
-                    </ol>
-                </details>
-
-                <details>
-                    <summary>Hemorragias Severas</summary>
-                    <ol>
-                        <li>Aplica presión directa sobre la herida usando gasas o un paño limpio.</li>
-                        <li>Mantén la presión constante. No levantes el paño; si se empapa de sangre, pon otro encima.</li>
-                        <li>Si es en una extremidad y la presión no la detiene, aplica un torniquete por encima de la herida y anota la hora.</li>
-                    </ol>
-                </details>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <p>Aviso Legal: Esta página web es de carácter estrictamente informativo y educativo. La información proporcionada no sustituye en ningún caso el asesoramiento médico profesional, la formación en primeros auxilios ni las instrucciones de los servicios de emergencia oficiales (112). El uso de esta plataforma, de sus mapas y de sus guías se realiza bajo la exclusiva responsabilidad y riesgo del usuario. Los creadores de esta web declinan toda responsabilidad legal por cualquier daño, lesión o consecuencia derivada del uso, mal uso o interpretación de los contenidos aquí expuestos.</p>
-    </footer>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+      </div>
+    </div>
     
-    <script>
-        // Registro del Service Worker para PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(reg => {
-                    console.log('Service Worker registrado con éxito:', reg.scope);
-                }).catch(err => {
-                    console.error('Error al registrar el Service Worker:', err);
-                });
-            });
+    <!-- Mobile Navigation -->
+    <nav id="mobile-menu" class="mobile-menu fixed top-16 left-0 w-64 h-full bg-secondary shadow-xl md:hidden z-40">
+      <div class="p-4 flex flex-col gap-2">
+        <button onclick="showPage('inicio'); toggleMobileMenu();" class="nav-link px-4 py-3 rounded-lg text-left font-medium active" data-page="inicio">🏠 Inicio - Plan 3-3-3</button>
+        <button onclick="showPage('mapa'); toggleMobileMenu();" class="nav-link px-4 py-3 rounded-lg text-left font-medium" data-page="mapa">🗺️ Mapa de Recursos</button>
+        <button onclick="showPage('mochila'); toggleMobileMenu();" class="nav-link px-4 py-3 rounded-lg text-left font-medium" data-page="mochila">🎒 Mochila de Emergencias</button>
+        <button onclick="showPage('primeros-auxilios'); toggleMobileMenu();" class="nav-link px-4 py-3 rounded-lg text-left font-medium" data-page="primeros-auxilios">🏥 Primeros Auxilios</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container mx-auto px-4 py-6">
+    <!-- SECCIÓN 1: INICIO - EL PLAN 3-3-3 -->
+    <section id="page-inicio" class="page active">
+      <div class="bg-secondary rounded-xl shadow-lg p-6 mb-6">
+        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+          <span class="text-3xl">📻</span> El Plan 3-3-3
+        </h2>
+        
+        <div class="bg-tertiary rounded-lg p-4 mb-6">
+          <p class="text-secondary leading-relaxed">
+            El <strong class="accent-text">Plan 3-3-3</strong> es un protocolo de comunicación por radio diseñado para situaciones de emergencia cuando las redes de telecomunicaciones convencionales fallan. Establece momentos específicos de contacto para coordinar ayuda y compartir información vital.
+          </p>
+        </div>
+        
+        <h3 class="text-xl font-semibold mb-3">📡 Frecuencias Técnicas</h3>
+        <div class="grid md:grid-cols-2 gap-4 mb-6">
+          <div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl p-5 shadow-lg">
+            <h4 class="font-bold text-lg mb-2">PMR-446</h4>
+            <p class="text-3xl font-mono font-bold">446.03125 MHz</p>
+            <p class="text-sm mt-2 opacity-90">Radio de uso libre - Sin licencia</p>
+            <p class="text-sm opacity-90">Alcance: 1-5 km</p>
+          </div>
+          <div class="bg-gradient-to-br from-amber-500 to-amber-700 text-white rounded-xl p-5 shadow-lg">
+            <h4 class="font-bold text-lg mb-2">CB-27</h4>
+            <p class="text-3xl font-mono font-bold">26.985 MHz</p>
+            <p class="text-sm mt-2 opacity-90">Banda Ciudadana - Canal 15</p>
+            <p class="text-sm opacity-90">Alcance: 5-15 km</p>
+          </div>
+        </div>
+        
+        <h3 class="text-xl font-semibold mb-3">⏰ Horarios de Escucha</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse bg-tertiary rounded-lg overflow-hidden">
+            <thead>
+              <tr class="accent-bg text-white">
+                <th class="p-3 text-left">Horario</th>
+                <th class="p-3 text-left">Período</th>
+                <th class="p-3 text-left">Actividad</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-custom">
+                <td class="p-3 font-mono font-bold">08:00</td>
+                <td class="p-3">Mañana</td>
+                <td class="p-3">📋 Registro de estado - Compartir información de la noche</td>
+              </tr>
+              <tr class="border-b border-custom bg-tertiary/50">
+                <td class="p-3 font-mono font-bold">14:00</td>
+                <td class="p-3">Mediodía</td>
+                <td class="p-3">🔄 Actualización - Coordinación de recursos</td>
+              </tr>
+              <tr class="border-b border-custom">
+                <td class="p-3 font-mono font-bold">20:00</td>
+                <td class="p-3">Tarde</td>
+                <td class="p-3">📊 Balance del día - Planificación nocturna</td>
+              </tr>
+              <tr class="bg-red-500/10">
+                <td class="p-3 font-mono font-bold">CUALQUIERA</td>
+                <td class="p-3">Emergencia</td>
+                <td class="p-3">🚨 <strong>EMERGENCIA:</strong> Transmisión continua cada 5 min</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mt-6 p-4 bg-yellow-500/20 border-l-4 border-yellow-500 rounded-r-lg">
+          <p class="font-semibold">⚠️ Importante:</p>
+          <p class="text-sm text-secondary mt-1">En caso de emergencia real, contacta siempre con el <strong>112</strong> (Emergencias Europeas). Este sistema es complementario, nunca sustitutivo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: MAPA DE RECURSOS CERCANOS -->
+    <section id="page-mapa" class="page">
+      <div class="bg-secondary rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+          <span class="text-3xl">🗺️</span> Mapa de Edificios Públicos
+        </h2>
+        <p class="text-secondary mb-4">Radio de búsqueda: <strong>1.5 km</strong> desde tu ubicación</p>
+        
+        <!-- Search Box -->
+        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+          <input type="text" id="search-address" placeholder="Introduce dirección o código postal..." 
+                 class="flex-1 px-4 py-3 rounded-lg bg-tertiary border border-custom focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <button onclick="searchLocation()" class="px-6 py-3 accent-bg text-white rounded-lg font-semibold hover:opacity-90 transition">
+            🔍 Buscar
+          </button>
+          <button onclick="useMyLocation()" class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:opacity-90 transition">
+            📍 Mi ubicación
+          </button>
+        </div>
+        
+        <!-- Map Container -->
+        <div id="map" class="mb-4 shadow-lg"></div>
+        
+        <!-- Legend -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-sm">
+          <div class="flex items-center gap-2 bg-tertiary p-2 rounded-lg">
+            <span class="text-xl">🏥</span> Hospitales
+          </div>
+          <div class="flex items-center gap-2 bg-tertiary p-2 rounded-lg">
+            <span class="text-xl">👮</span> Policía
+          </div>
+          <div class="flex items-center gap-2 bg-tertiary p-2 rounded-lg">
+            <span class="text-xl">🚒</span> Bomberos
+          </div>
+          <div class="flex items-center gap-2 bg-tertiary p-2 rounded-lg">
+            <span class="text-xl">📚</span> Bibliotecas
+          </div>
+          <div class="flex items-center gap-2 bg-tertiary p-2 rounded-lg">
+            <span class="text-xl">🏛️</span> Centros Cívicos
+          </div>
+          <div class="flex items-center gap-2 bg-tertiary p-2 rounded-lg">
+            <span class="text-xl">🆘</span> Protección Civil
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 3: MOCHILA DE EMERGENCIAS -->
+    <section id="page-mochila" class="page">
+      <div class="bg-secondary rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+          <span class="text-3xl">🎒</span> Mochila de 72 Horas
+        </h2>
+        <p class="text-secondary mb-6">Lista de verificación para preparar tu kit de emergencia. El estado se guarda automáticamente.</p>
+        
+        <div class="mb-4 flex items-center gap-4">
+          <div class="flex-1 bg-tertiary rounded-full h-4 overflow-hidden">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <span id="progress-text" class="font-bold text-lg">0%</span>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4" id="checklist-container">
+          <!-- Items generated by JS -->
+        </div>
+        
+        <div class="mt-6 flex gap-3">
+          <button onclick="resetChecklist()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:opacity-90 transition">
+            🔄 Reiniciar lista
+          </button>
+          <button onclick="exportChecklist()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition">
+            📤 Exportar estado
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 4: GUÍA DE PRIMEROS AUXILIOS -->
+    <section id="page-primeros-auxilios" class="page">
+      <div class="bg-secondary rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+          <span class="text-3xl">🏥</span> Guía de Primeros Auxilios
+        </h2>
+        
+        <div class="bg-red-500/20 border-l-4 border-red-500 p-4 rounded-r-lg mb-6">
+          <p class="font-bold text-red-600 dark:text-red-400">⚠️ EMERGENCIA MÉDICA</p>
+          <p class="text-sm">Si la situación es grave, llama inmediatamente al <strong>112</strong> antes de actuar.</p>
+        </div>
+        
+        <!-- Acordeón -->
+        <div class="space-y-3">
+          <!-- RCP -->
+          <div class="accordion border border-custom rounded-lg overflow-hidden">
+            <button onclick="toggleAccordion('rcp')" class="w-full flex items-center justify-between p-4 bg-tertiary hover:opacity-80 transition text-left">
+              <span class="font-semibold flex items-center gap-2">
+                <span class="text-2xl">💗</span> RCP Básica (Reanimación Cardiopulmonar)
+              </span>
+              <span id="arrow-rcp" class="transform transition-transform">▼</span>
+            </button>
+            <div id="content-rcp" class="accordion-content bg-secondary">
+              <div class="p-4 space-y-3">
+                <div class="flex items-start gap-3">
+                  <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</span>
+                  <div>
+                    <p class="font-semibold">Verifica la seguridad</p>
+                    <p class="text-sm text-secondary">Asegura que el área es segura para ti y la víctima.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</span>
+                  <div>
+                    <p class="font-semibold">Comprueba la respuesta</p>
+                    <p class="text-sm text-secondary">Sacude suavemente y pregunta: "¿Está usted bien?"</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</span>
+                  <div>
+                    <p class="font-semibold">Llama al 112</p>
+                    <p class="text-sm text-secondary">Pide a alguien que llame o pon el altavoz mientras trabajas.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">4</span>
+                  <div>
+                    <p class="font-semibold">Compresiones torácicas</p>
+                    <p class="text-sm text-secondary">Manos entrelazadas en el centro del pecho. Comprimir 5-6 cm, ritmo 100-120/min. 30 compresiones.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">5</span>
+                  <div>
+                    <p class="font-semibold">Ventilaciones (si formado)</p>
+                    <p class="text-sm text-secondary">Inclina la cabeza, levanta el mentón. 2 ventilaciones de 1 segundo.</p>
+                  </div>
+                </div>
+                <div class="bg-yellow-500/20 p-3 rounded-lg mt-3">
+                  <p class="text-sm"><strong>💡 Recuerda:</strong> Continúa con ciclos de 30:2 hasta que llegue ayuda o la persona reaccione.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Heimlich -->
+          <div class="accordion border border-custom rounded-lg overflow-hidden">
+            <button onclick="toggleAccordion('heimlich')" class="w-full flex items-center justify-between p-4 bg-tertiary hover:opacity-80 transition text-left">
+              <span class="font-semibold flex items-center gap-2">
+                <span class="text-2xl">🫁</span> Maniobra de Heimlich (Atragantamiento)
+              </span>
+              <span id="arrow-heimlich" class="transform transition-transform">▼</span>
+            </button>
+            <div id="content-heimlich" class="accordion-content bg-secondary">
+              <div class="p-4 space-y-3">
+                <div class="bg-green-500/20 p-3 rounded-lg mb-3">
+                  <p class="text-sm"><strong>Signos:</strong> Imposibilidad de hablar/tos, manos al cuello, labios azulados.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</span>
+                  <div>
+                    <p class="font-semibold">Preguntar: "¿Te estás atragantando?"</p>
+                    <p class="text-sm text-secondary">Si asiente, confirma que no puede toser ni hablar.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</span>
+                  <div>
+                    <p class="font-semibold">5 golpes en la espalda</p>
+                    <p class="text-sm text-secondary">Con el talón de la mano, entre los omóplatos.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</span>
+                  <div>
+                    <p class="font-semibold">5 compresiones abdominales</p>
+                    <p class="text-sm text-secondary">Puño cerrado sobre el ombligo, tirar hacia arriba y adentro.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">4</span>
+                  <div>
+                    <p class="font-semibold">Alternar hasta expulsar el objeto</p>
+                    <p class="text-sm text-secondary">5 golpes espalda → 5 compresiones abdominales.</p>
+                  </div>
+                </div>
+                <div class="bg-red-500/20 p-3 rounded-lg mt-3">
+                  <p class="text-sm"><strong>⚠️ Embarazadas/Bebés:</strong> Compresiones torácicas en lugar de abdominales.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Hemorragias -->
+          <div class="accordion border border-custom rounded-lg overflow-hidden">
+            <button onclick="toggleAccordion('hemorragias')" class="w-full flex items-center justify-between p-4 bg-tertiary hover:opacity-80 transition text-left">
+              <span class="font-semibold flex items-center gap-2">
+                <span class="text-2xl">🩸</span> Hemorragias Severas
+              </span>
+              <span id="arrow-hemorragias" class="transform transition-transform">▼</span>
+            </button>
+            <div id="content-hemorragias" class="accordion-content bg-secondary">
+              <div class="p-4 space-y-3">
+                <div class="flex items-start gap-3">
+                  <span class="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</span>
+                  <div>
+                    <p class="font-semibold">Presión directa</p>
+                    <p class="text-sm text-secondary">Presiona firmemente con un paño limpio directamente sobre la herida.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</span>
+                  <div>
+                    <p class="font-semibold">No retires el paño</p>
+                    <p class="text-sm text-secondary">Si se empapa, añade más capas encima sin retirar las anteriores.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</span>
+                  <div>
+                    <p class="font-semibold">Elevar la extremidad</p>
+                    <p class="text-sm text-secondary">Si es posible, eleva la zona lesionada por encima del corazón.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">4</span>
+                  <div>
+                    <p class="font-semibold">Punto de presión</p>
+                    <p class="text-sm text-secondary">Si continúa, presiona la arteria principal (axilar, braquial o femoral).</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">5</span>
+                  <div>
+                    <p class="font-semibold">Torniquete (último recurso)</p>
+                    <p class="text-sm text-secondary">Solo en extremidades, 5-7 cm por encima de la herida. Anotar hora de aplicación.</p>
+                  </div>
+                </div>
+                <div class="bg-blue-500/20 p-3 rounded-lg mt-3">
+                  <p class="text-sm"><strong>💡 Importante:</strong> Mantén a la persona abrigada y acostada. Vigila signos de shock.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Quemaduras -->
+          <div class="accordion border border-custom rounded-lg overflow-hidden">
+            <button onclick="toggleAccordion('quemaduras')" class="w-full flex items-center justify-between p-4 bg-tertiary hover:opacity-80 transition text-left">
+              <span class="font-semibold flex items-center gap-2">
+                <span class="text-2xl">🔥</span> Quemaduras
+              </span>
+              <span id="arrow-quemaduras" class="transform transition-transform">▼</span>
+            </button>
+            <div id="content-quemaduras" class="accordion-content bg-secondary">
+              <div class="p-4 space-y-3">
+                <div class="flex items-start gap-3">
+                  <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</span>
+                  <div>
+                    <p class="font-semibold">Enfriar inmediatamente</p>
+                    <p class="text-sm text-secondary">Agua corriente fría (no helada) durante 10-20 minutos.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</span>
+                  <div>
+                    <p class="font-semibold">Retirar accesorios</p>
+                    <p class="text-sm text-secondary">Anillos, pulseras, relojes antes de que hinche la zona.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</span>
+                  <div>
+                    <p class="font-semibold">Cubrir la quemadura</p>
+                    <p class="text-sm text-secondary">Paño limpio o film transparente. NO aplicar cremas ni remedios caseros.</p>
+                  </div>
+                </div>
+                <div class="bg-red-500/20 p-3 rounded-lg mt-3">
+                  <p class="text-sm"><strong>⚠️ NO hacer:</strong> No romper ampollas, no usar hielo, no aplicar pasta dental/mantequilla.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-secondary border-t border-custom mt-8">
+    <div class="container mx-auto px-4 py-6">
+      <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-4">
+        <h4 class="font-bold text-yellow-600 dark:text-yellow-400 mb-2">⚠️ Aviso Legal</h4>
+        <p class="text-sm text-secondary leading-relaxed">
+          Esta página web es de carácter estrictamente informativo y educativo. La información proporcionada no sustituye en ningún caso el asesoramiento médico profesional, la formación en primeros auxilios ni las instrucciones de los servicios de emergencia oficiales (112). El uso de esta plataforma, de sus mapas y de sus guías se realiza bajo la exclusiva responsabilidad y riesgo del usuario. Los creadores de esta web declinan toda responsabilidad legal por cualquier daño, lesión o consecuencia derivada del uso, mal uso o interpretación de los contenidos aquí expuestos.
+        </p>
+      </div>
+      <div class="text-center text-sm text-secondary">
+        <p>🚨 Coordinación de Emergencias - Plan 3-3-3</p>
+        <p class="mt-1">PWA instalable con soporte offline</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ===== SERVICE WORKER REGISTRATION =====
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async () => {
+        try {
+          const registration = await navigator.serviceWorker.register('sw.js');
+          console.log('SW registered:', registration.scope);
+        } catch (error) {
+          console.log('SW registration failed:', error);
         }
+      });
+    }
 
-        // Detección de conexión Offline
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
+    // ===== THEME MANAGEMENT =====
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').textContent = '☀️';
+      }
+    }
+    
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+    }
+    
+    initTheme();
 
-        function updateOnlineStatus() {
-            const warning = document.getElementById('offline-warning');
-            if (!navigator.onLine) {
-                warning.style.display = 'block';
-            } else {
-                warning.style.display = 'none';
-            }
+    // ===== NAVIGATION =====
+    function showPage(pageId) {
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      // Show selected page
+      document.getElementById(`page-${pageId}`).classList.add('active');
+      
+      // Update nav links
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.dataset.page === pageId) {
+          link.classList.add('active');
         }
-        updateOnlineStatus();
+      });
+      
+      // Initialize map when showing map page
+      if (pageId === 'mapa' && !window.mapInitialized) {
+        initMap();
+        window.mapInitialized = true;
+      }
+    }
+    
+    function toggleMobileMenu() {
+      document.getElementById('mobile-menu').classList.toggle('open');
+    }
 
-        // 1. SISTEMA DE PESTAÑAS
-        function openTab(tabId) {
-            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-
-            if (tabId === 'mapa' && map) {
-                setTimeout(() => { map.invalidateSize(); }, 100);
-            }
+    // ===== MAP FUNCTIONALITY =====
+    let map, marker, circle, userLat, userLon;
+    const markers = [];
+    
+    function initMap() {
+      map = L.map('map').setView([40.4168, -3.7038], 13); // Madrid por defecto
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      
+      // Fix map size on page load
+      setTimeout(() => map.invalidateSize(), 100);
+    }
+    
+    async function searchLocation() {
+      const address = document.getElementById('search-address').value;
+      if (!address) return alert('Introduce una dirección');
+      
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=es`);
+        const data = await response.json();
+        
+        if (data.length === 0) {
+          return alert('Dirección no encontrada');
         }
-
-        // 2. MODO CLARO / OSCURO
-        function toggleTheme() {
-            const htmlTag = document.documentElement;
-            const icon = document.getElementById('theme-icon');
-            
-            if (htmlTag.getAttribute('data-theme') === 'light') {
-                htmlTag.setAttribute('data-theme', 'dark');
-                icon.classList.replace('fa-moon', 'fa-sun');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                htmlTag.setAttribute('data-theme', 'light');
-                icon.classList.replace('fa-sun', 'fa-moon');
-                localStorage.setItem('theme', 'light');
-            }
+        
+        const { lat, lon, display_name } = data[0];
+        setUserLocation(parseFloat(lat), parseFloat(lon), display_name);
+      } catch (error) {
+        alert('Error al buscar la dirección');
+        console.error(error);
+      }
+    }
+    
+    function useMyLocation() {
+      if (!navigator.geolocation) {
+        return alert('Geolocalización no soportada');
+      }
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation(position.coords.latitude, position.coords.longitude, 'Tu ubicación');
+        },
+        (error) => {
+          alert('Error al obtener ubicación: ' + error.message);
         }
-
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            document.getElementById('theme-icon').classList.replace('fa-moon', 'fa-sun');
-        }
-
-        // 3. CHECKLIST EN LOCALSTORAGE
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(chk => {
-            if(localStorage.getItem(chk.id) === 'true') chk.checked = true;
-            chk.addEventListener('change', function() {
-                localStorage.setItem(this.id, this.checked);
-            });
+      );
+    }
+    
+    function setUserLocation(lat, lon, name) {
+      userLat = lat;
+      userLon = lon;
+      
+      // Clear previous markers and circle
+      if (marker) map.removeLayer(marker);
+      if (circle) map.removeLayer(circle);
+      markers.forEach(m => map.removeLayer(m));
+      markers.length = 0;
+      
+      // Add user marker
+      marker = L.marker([lat, lon], {
+        icon: L.divIcon({
+          className: 'custom-marker',
+          html: '<div style="font-size:30px;">📍</div>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 30]
+        })
+      }).addTo(map).bindPopup(`<strong>${name}</strong><br>Tu ubicación`);
+      
+      // Add 1.5km circle
+      circle = L.circle([lat, lon], {
+        radius: 1500,
+        color: '#3b82f6',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.1
+      }).addTo(map);
+      
+      // Center map
+      map.setView([lat, lon], 14);
+      
+      // Search for nearby resources
+      searchNearbyResources(lat, lon);
+    }
+    
+    async function searchNearbyResources(lat, lon) {
+      const query = `
+        [out:json][timeout:25];
+        (
+          node["amenity"="hospital"](around:1500,${lat},${lon});
+          node["amenity"="clinic"](around:1500,${lat},${lon});
+          node["amenity"="police"](around:1500,${lat},${lon});
+          node["amenity"="fire_station"](around:1500,${lat},${lon});
+          node["amenity"="library"](around:1500,${lat},${lon});
+          node["amenity"="community_centre"](around:1500,${lat},${lon});
+          node["emergency"="rescue_base"](around:1500,${lat},${lon});
+          way["amenity"="hospital"](around:1500,${lat},${lon});
+          way["amenity"="clinic"](around:1500,${lat},${lon});
+          way["amenity"="police"](around:1500,${lat},${lon});
+          way["amenity"="fire_station"](around:1500,${lat},${lon});
+          way["amenity"="library"](around:1500,${lat},${lon});
+          way["amenity"="community_centre"](around:1500,${lat},${lon});
+          way["emergency"="rescue_base"](around:1500,${lat},${lon});
+        );
+        out center;
+      `;
+      
+      try {
+        const response = await fetch('https://overpass-api.de/api/interpreter', {
+          method: 'POST',
+          body: query
         });
+        const data = await response.json();
+        
+        data.elements.forEach(element => {
+          const elLat = element.lat || element.center?.lat;
+          const elLon = element.lon || element.center?.lon;
+          
+          if (!elLat || !elLon) return;
+          
+          const { icon, type } = getResourceInfo(element.tags);
+          const name = element.tags.name || type;
+          const address = element.tags['addr:street'] ? 
+            `${element.tags['addr:street']} ${element.tags['addr:housenumber'] || ''}` : 
+            'Dirección no disponible';
+          
+          // Google Maps directions URL
+          const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lon}&destination=${elLat},${elLon}`;
+          
+          const popupContent = `
+            <div style="min-width: 200px;">
+              <h3 style="font-weight: bold; margin-bottom: 5px;">${icon} ${name}</h3>
+              <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${type}</p>
+              <p style="font-size: 12px; margin-bottom: 10px;">📍 ${address}</p>
+              <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" 
+                 style="display: inline-block; background: #3b82f6; color: white; padding: 8px 16px; 
+                        border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                🧭 Cómo llegar
+              </a>
+            </div>
+          `;
+          
+          const resourceMarker = L.marker([elLat, elLon], {
+            icon: L.divIcon({
+              className: 'resource-marker',
+              html: `<div style="font-size: 24px;">${icon}</div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            })
+          }).addTo(map).bindPopup(popupContent);
+          
+          markers.push(resourceMarker);
+        });
+        
+      } catch (error) {
+        console.error('Error fetching resources:', error);
+        alert('Error al buscar recursos. Inténtalo de nuevo.');
+      }
+    }
+    
+    function getResourceInfo(tags) {
+      if (tags.amenity === 'hospital') return { icon: '🏥', type: 'Hospital' };
+      if (tags.amenity === 'clinic') return { icon: '🏥', type: 'Clínica' };
+      if (tags.amenity === 'police') return { icon: '👮', type: 'Policía' };
+      if (tags.amenity === 'fire_station') return { icon: '🚒', type: 'Bomberos' };
+      if (tags.amenity === 'library') return { icon: '📚', type: 'Biblioteca' };
+      if (tags.amenity === 'community_centre') return { icon: '🏛️', type: 'Centro Cívico' };
+      if (tags.emergency === 'rescue_base') return { icon: '🆘', type: 'Protección Civil / Cruz Roja' };
+      return { icon: '📍', type: 'Punto de interés' };
+    }
 
-        // 4. MAPA (Leaflet + Nominatim + Overpass API)
-        let map;
-        let mapInitialized = false;
-        let currentOriginLat = null;
-        let currentOriginLon = null;
-
-        function handleEnter(e) {
-            if (e.key === 'Enter') searchAddress();
+    // ===== CHECKLIST FUNCTIONALITY =====
+    const checklistItems = [
+      { id: 'agua', category: '💧 Agua', item: 'Agua (3L por persona/día)' },
+      { id: 'comida', category: '💧 Agua', item: 'Pastillas potabilizadoras' },
+      { id: 'botiquin', category: '🏥 Sanidad', item: 'Botiquín básico completo' },
+      { id: 'medicamentos', category: '🏥 Sanidad', item: 'Medicamentos personales' },
+      { id: 'mascarillas', category: '🏥 Sanidad', item: 'Mascarillas FFP2' },
+      { id: 'guantes', category: '🏥 Sanidad', item: 'Guantes de protección' },
+      { id: 'linterna', category: '🔦 Equipamiento', item: 'Linterna + pilas' },
+      { id: 'radio', category: '🔦 Equipamiento', item: 'Radio FM/AM portátil' },
+      { id: 'movil', category: '🔦 Equipamiento', item: 'Batería externa cargada' },
+      { id: 'navaja', category: '🔦 Equipamiento', item: 'Navaja/multiherramienta' },
+      { id: 'silbato', category: '🔦 Equipamiento', item: 'Silbato de emergencia' },
+      { id: 'manta', category: '🔦 Equipamiento', item: 'Manta térmica' },
+      { id: 'comida72', category: '🍽️ Alimentación', item: 'Alimentos no perecederos (72h)' },
+      { id: 'abrelatas', category: '🍽️ Alimentación', item: 'Abrelatas manual' },
+      { id: 'documentos', category: '📋 Documentación', item: 'Documentos en sobre impermeable' },
+      { id: 'efectivo', category: '📋 Documentación', item: 'Efectivo y monedas' },
+      { id: 'contactos', category: '📋 Documentación', item: 'Lista de contactos de emergencia' },
+      { id: 'ropa', category: '👕 Vestuario', item: 'Ropa de abrigo de repuesto' },
+      { id: 'calzado', category: '👕 Vestuario', item: 'Calzado resistente' },
+      { id: 'higiene', category: '🧴 Higiene', item: 'Kit higiene básico' }
+    ];
+    
+    function renderChecklist() {
+      const container = document.getElementById('checklist-container');
+      const savedState = JSON.parse(localStorage.getItem('emergencyChecklist') || '{}');
+      
+      let html = '';
+      let currentCategory = '';
+      
+      checklistItems.forEach(item => {
+        if (item.category !== currentCategory) {
+          currentCategory = item.category;
+          html += `<div class="col-span-full mt-4 first:mt-0"><h3 class="font-bold text-lg border-b border-custom pb-2">${currentCategory}</h3></div>`;
         }
+        
+        const checked = savedState[item.id] ? 'checked' : '';
+        html += `
+          <div class="checklist-item bg-tertiary rounded-lg p-3 flex items-center gap-3">
+            <input type="checkbox" id="${item.id}" ${checked} onchange="updateChecklist('${item.id}')" 
+                   class="w-5 h-5 rounded cursor-pointer accent-green-500">
+            <label for="${item.id}" class="cursor-pointer flex-1">${item.item}</label>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+      updateProgress();
+    }
+    
+    function updateChecklist(id) {
+      const savedState = JSON.parse(localStorage.getItem('emergencyChecklist') || '{}');
+      savedState[id] = document.getElementById(id).checked;
+      localStorage.setItem('emergencyChecklist', JSON.stringify(savedState));
+      updateProgress();
+    }
+    
+    function updateProgress() {
+      const savedState = JSON.parse(localStorage.getItem('emergencyChecklist') || '{}');
+      const checkedCount = Object.values(savedState).filter(v => v).length;
+      const percentage = Math.round((checkedCount / checklistItems.length) * 100);
+      
+      document.getElementById('progress-bar').style.width = `${percentage}%`;
+      document.getElementById('progress-text').textContent = `${percentage}% (${checkedCount}/${checklistItems.length})`;
+    }
+    
+    function resetChecklist() {
+      if (confirm('¿Estás seguro de reiniciar toda la lista?')) {
+        localStorage.removeItem('emergencyChecklist');
+        renderChecklist();
+      }
+    }
+    
+    function exportChecklist() {
+      const savedState = JSON.parse(localStorage.getItem('emergencyChecklist') || '{}');
+      const items = checklistItems.map(item => 
+        `${savedState[item.id] ? '✅' : '❌'} ${item.item}`
+      ).join('\n');
+      
+      const blob = new Blob([`MOCHILA DE EMERGENCIAS - Estado\n${'='.repeat(40)}\n\n${items}`], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mochila-emergencias.txt';
+      a.click();
+    }
+    
+    renderChecklist();
 
-        function searchAddress() {
-            if (!navigator.onLine) {
-                alert("Necesitas conexión a internet para buscar en el mapa.");
-                return;
-            }
+    // ===== ACCORDION FUNCTIONALITY =====
+    function toggleAccordion(id) {
+      const content = document.getElementById(`content-${id}`);
+      const arrow = document.getElementById(`arrow-${id}`);
+      
+      content.classList.toggle('open');
+      arrow.style.transform = content.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
 
-            const address = document.getElementById('address-input').value.trim();
-            const statusDiv = document.getElementById('map-status');
-
-            if (!address) {
-                alert("Por favor, escribe una dirección.");
-                return;
-            }
-
-            statusDiv.style.display = 'block';
-            statusDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando coordenadas...';
-            
-            const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
-
-            fetch(geocodeUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length === 0) {
-                        statusDiv.innerHTML = "No se ha encontrado la dirección. Prueba con otro formato.";
-                        return;
-                    }
-
-                    currentOriginLat = parseFloat(data[0].lat);
-                    currentOriginLon = parseFloat(data[0].lon);
-                    const displayName = data[0].display_name;
-
-                    statusDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos cercanos...';
-                    document.getElementById('map').style.display = 'block';
-
-                    if (!mapInitialized) {
-                        map = L.map('map').setView([currentOriginLat, currentOriginLon], 14);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; OpenStreetMap'
-                        }).addTo(map);
-                        mapInitialized = true;
-                    } else {
-                        map.setView([currentOriginLat, currentOriginLon], 14);
-                        map.eachLayer((layer) => {
-                            if (layer instanceof L.Marker || layer instanceof L.Circle) map.removeLayer(layer);
-                        });
-                    }
-
-                    L.marker([currentOriginLat, currentOriginLon]).addTo(map).bindPopup(`<b>Origen:</b><br>${displayName}`).openPopup();
-                    L.circle([currentOriginLat, currentOriginLon], { color: 'blue', fillColor: '#30f', fillOpacity: 0.1, radius: 1500 }).addTo(map);
-
-                    fetchOverpassData(currentOriginLat, currentOriginLon, statusDiv);
-                })
-                .catch(err => {
-                    statusDiv.innerHTML = "Error al buscar la dirección.";
-                });
-        }
-
-        function fetchOverpassData(lat, lon, statusDiv) {
-            const overpassQuery = `
-                [out:json][timeout:25];
-                (
-                  node["amenity"~"hospital|clinic|police|fire_station|library|community_centre"](around:1500,${lat},${lon});
-                  way["amenity"~"hospital|clinic|police|fire_station|library|community_centre"](around:1500,${lat},${lon});
-                  node["emergency"="rescue_base"](around:1500,${lat},${lon});
-                  way["emergency"="rescue_base"](around:1500,${lat},${lon});
-                );
-                out center;
-            `;
-
-            fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`)
-                .then(response => response.json())
-                .then(data => {
-                    statusDiv.style.display = 'none';
-                    if (data.elements.length === 0) {
-                        alert("No se encontraron recursos en 1.5km.");
-                        return;
-                    }
-
-                    data.elements.forEach(el => {
-                        const tags = el.tags;
-                        const amenity = tags.amenity || "";
-                        const emergency = tags.emergency || "";
-                        let name = tags.name || "Centro sin nombre";
-                        
-                        let iconColor = "gray";
-                        let iconType = "fa-building";
-                        let typeDesc = "Recurso público";
-
-                        if (amenity.includes("hospital") || amenity.includes("clinic")) { 
-                            iconColor = "red"; iconType = "fa-truck-medical"; typeDesc = "Hospital / Clínica"; 
-                        } else if (amenity.includes("police")) { 
-                            iconColor = "blue"; iconType = "fa-shield-halved"; typeDesc = "Policía"; 
-                        } else if (amenity.includes("fire_station")) { 
-                            iconColor = "orange"; iconType = "fa-fire-extinguisher"; typeDesc = "Bomberos"; 
-                        } else if (amenity.includes("library")) { 
-                            iconColor = "purple"; iconType = "fa-book"; typeDesc = "Biblioteca"; 
-                        } else if (amenity.includes("community_centre")) { 
-                            iconColor = "green"; iconType = "fa-people-group"; typeDesc = "Centro Cívico"; 
-                        } else if (emergency === "rescue_base") { 
-                            iconColor = "darkred"; iconType = "fa-life-ring"; typeDesc = "Cruz Roja / Prot. Civil"; 
-                        }
-
-                        const elLat = el.lat || el.center.lat;
-                        const elLon = el.lon || el.center.lon;
-
-                        // Generador de URL para ruta en Google Maps
-                        const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lon}&destination=${elLat},${elLon}`;
-
-                        const marker = L.marker([elLat, elLon]).addTo(map);
-                        marker.bindPopup(`
-                            <div style="text-align:center;">
-                                <b><i class="fa-solid ${iconType}" style="color:${iconColor}"></i> ${name}</b><br>
-                                <span style="font-size:0.85rem; color:#666;">${typeDesc}</span><br>
-                                <a href="${routeUrl}" target="_blank" class="route-btn">
-                                    <i class="fa-solid fa-route"></i> Cómo llegar
-                                </a>
-                            </div>
-                        `);
-                    });
-                })
-                .catch(err => {
-                    statusDiv.innerHTML = "Error al conectar con los mapas de Overpass.";
-                    console.error(err);
-                });
-        }
-    </script>
+    // ===== PWA INSTALL PROMPT =====
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Could show custom install button here
+    });
+  </script>
 </body>
 </html>
